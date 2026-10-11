@@ -1,0 +1,54 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+__pycache__/
+*.py[cod]
+.python_packages/
+staticfiles/
+media/
+
+
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Python
+.python_packages/
+.python_vendor.tar.gz
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Local Database
+db.sqlite3
+db.sqlite3-journal
+
+# Node
+node_modules/
+dist/
+.npm/
+*.log
+
+# Django
+staticfiles/
+media/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/

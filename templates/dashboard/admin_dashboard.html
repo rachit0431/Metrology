@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Directorate Oversight &amp; Administration — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Admin Header -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="role-badge-header role-badge-admin">System Oversight</span>
+            <span class="text-muted small">National Regulatory Portal</span>
+          </div>
+          <h1 class="h4 fw-bold text-dark mt-1 mb-0">Legal Metrology Control Dashboard</h1>
+          <div class="small text-muted mt-1">
+            Central governance, application review, officer/GATC assignment, and immutable audit monitoring.
+          </div>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+          <a href="{% url 'instruments:list' %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-hdd-network me-1"></i>All Instruments
+          </a>
+          <a href="{% url 'verification:list' %}" class="btn btn-gov-secondary btn-sm">
+            <i class="bi bi-clipboard-check me-1"></i>Review Applications
+          </a>
+          <a href="/admin/" target="_blank" class="btn btn-gov-primary btn-sm">
+            <i class="bi bi-gear-wide-connected me-1"></i>Django Admin
+          </a>
+        </div>
+      </div>
+
+      <!-- Core Admin Metrics (Real DB counts) -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+          <div class="metric-card">
+            <div class="metric-label">Total Users</div>
+            <div class="metric-value tabular-numbers">{{ total_users }}</div>
+            <div class="metric-sub">
+              {{ owners_count }} Owners · {{ lmo_count }} LMOs · {{ gatc_count }} Labs
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="metric-card">
+            <div class="metric-label">Total Instruments</div>
+            <div class="metric-value tabular-numbers">{{ total_instruments }}</div>
+            <div class="metric-sub">Across all categories &amp; districts</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="metric-card">
+            <div class="metric-label">Active Applications</div>
+            <div class="metric-value tabular-numbers" style="color: #d97706;">{{ pending_applications }}</div>
+            <div class="metric-sub">Requiring review / assignment / inspection</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="metric-card">
+            <div class="metric-label">Verified Instruments</div>
+            <div class="metric-value tabular-numbers" style="color: #059669;">{{ verified_instruments }}</div>
+            <div class="metric-sub">Compliant instruments in service</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Verification Applications (Review & Assignment Queue) -->
+      <div class="gov-card mb-4">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title">Verification Applications — Review, Assignment &amp; Scheduling</h2>
+          <a href="{% url 'verification:list' %}" class="small text-decoration-none">View All Applications &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>App Number</th>
+                <th>Instrument</th>
+                <th>Owner</th>
+                <th>Assigned LMO / GATC</th>
+                <th>Scheduled Date</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in recent_applications %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">
+                    <a href="{% url 'verification:detail' app.pk %}" class="text-decoration-none">{{ app.application_number }}</a>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ app.instrument.instrument_name }}</div>
+                    <div class="small text-muted tabular-numbers">{{ app.instrument.instrument_id }} · {{ app.instrument.district }}</div>
+                  </td>
+                  <td class="small">{{ app.applicant.display_name }}</td>
+                  <td class="small">
+                    {% if app.assigned_officer %}<div>LMO: {{ app.assigned_officer.display_name }}</div>{% endif %}
+                    {% if app.assigned_gatc %}<div class="text-muted">GATC: {{ app.assigned_gatc.display_name }}</div>{% endif %}
+                    {% if not app.assigned_officer and not app.assigned_gatc %}<span class="text-muted">Unassigned</span>{% endif %}
+                  </td>
+                  <td class="tabular-numbers small">{{ app.scheduled_date|date:"d M Y"|default:"Unscheduled" }}</td>
+                  <td>
+                    <span class="status-pill {% if app.status == 'PASSED' or app.status == 'CERTIFICATE_ISSUED' %}status-verified{% elif app.status == 'FAILED' or app.status == 'REJECTED' or app.status == 'CANCELLED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ app.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'verification:detail' app.pk %}" class="btn btn-gov-primary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                      Review / Assign
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted small">No verification applications submitted yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Audit Trail Table -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title">Recent Statutory Audit Trail Events</h2>
+          <a href="/admin/verification/auditlog/" target="_blank" class="small text-decoration-none">View Full Audit Log &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Action</th>
+                <th>Related Record</th>
+                <th>Status Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in recent_audit_logs %}
+                <tr>
+                  <td class="tabular-numbers small text-nowrap">{{ log.timestamp|date:"d M Y, H:i" }}</td>
+                  <td class="small fw-semibold">{{ log.actor.display_name|default:"System" }}</td>
+                  <td class="small text-dark">{{ log.action }}</td>
+                  <td class="small tabular-numbers">{{ log.related_object_repr }}</td>
+                  <td class="small tabular-numbers">
+                    {% if log.previous_status or log.new_status %}
+                      {{ log.previous_status|default:"—" }} &rarr; <strong>{{ log.new_status|default:"—" }}</strong>
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted small">No audit events recorded yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

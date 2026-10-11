@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}404 Page Not Found — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6 text-center">
+      <div class="gov-card shadow-sm p-4 p-md-5">
+        <div class="d-inline-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary rounded-circle mb-3" style="width: 64px; height: 64px;">
+          <i class="bi bi-search fs-1"></i>
+        </div>
+        <h1 class="h4 fw-bold text-dark mb-2">404 — Record / Page Not Found</h1>
+        <p class="text-muted small mb-4">
+          The requested regulatory record, instrument application, or URL does not exist or has been archived.
+        </p>
+
+        <a href="{% url 'accounts:landing' %}" class="btn btn-gov-primary btn-sm px-4">
+          <i class="bi bi-arrow-left me-1"></i>Return to Portal Home
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}500 Internal Server Error — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6 text-center">
+      <div class="gov-card shadow-sm p-4 p-md-5">
+        <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle mb-3" style="width: 64px; height: 64px;">
+          <i class="bi bi-exclamation-triangle fs-1"></i>
+        </div>
+        <h1 class="h4 fw-bold text-dark mb-2">500 — Internal Server Error</h1>
+        <p class="text-muted small mb-4">
+          An unexpected system condition occurred while processing this transaction. Our engineering team has logged the diagnostic trace.
+        </p>
+
+        <a href="{% url 'accounts:landing' %}" class="btn btn-gov-primary btn-sm px-4">
+          Return to Portal Home
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

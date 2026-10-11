@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificate {{ certificate.certificate_number }} — Legal Metrology{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    .tricolor-stripe, .gov-topbar, .gov-navbar, .gov-footer, .no-print {
+      display: none !important;
+    }
+    body {
+      background: #ffffff !important;
+    }
+    .certificate-sheet {
+      box-shadow: none !important;
+      margin: 0 !important;
+      width: 100% !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2 no-print">
+        <div class="d-flex align-items-center gap-3">
+          <a href="{% url 'certificates:list' %}" class="small text-decoration-none text-muted">
+            &larr; Back to Certificates
+          </a>
+          <a href="{% url 'verification:detail' certificate.application.pk %}" class="small text-decoration-none text-primary fw-semibold">
+            Application {{ certificate.application.application_number }}
+          </a>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'public_verify_token' certificate.verification_token %}" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-qr-code-scan me-1"></i>Open Public Verification Page
+          </a>
+          <button onclick="window.print()" class="btn btn-gov-primary btn-sm">
+            <i class="bi bi-printer me-1"></i>Print / Save PDF
+          </button>
+        </div>
+      </div>
+
+      {% if certificate.effective_status == 'REVOKED' %}
+        <div class="alert alert-danger border mb-3">
+          <strong><i class="bi bi-x-octagon-fill me-1"></i>CERTIFICATE REVOKED:</strong>
+          This certificate was revoked on <strong>{{ certificate.revoked_at|date:"d M Y H:i" }}</strong>
+          {% if certificate.revoked_by %}by <strong>{{ certificate.revoked_by.display_name }}</strong>{% endif %}.
+          Reason: <em>{{ certificate.revocation_reason }}</em>
+        </div>
+      {% elif certificate.effective_status == 'EXPIRED' %}
+        <div class="alert alert-warning border mb-3">
+          <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>CERTIFICATE EXPIRED:</strong>
+          The validity period of this certificate ended on <strong>{{ certificate.valid_until|date:"d M Y" }}</strong>.
+        </div>
+      {% endif %}
+
+      <!-- Printable Official Compliance Certificate -->
+      <div class="gov-card certificate-sheet p-4 p-md-5" style="border: 2px solid #0f2942; background: #ffffff;">
+        <!-- Department Heading Placeholder (No false government endorsement) -->
+        <div class="text-center pb-4 border-bottom mb-4">
+          <div class="small text-uppercase fw-semibold text-muted mb-1" style="letter-spacing: 0.08em; font-size: 0.72rem;">
+            [Official Department Heading Placeholder — Directorate of Legal Metrology Compliance Portal]
+          </div>
+          <h1 class="h4 text-uppercase fw-bold text-navy mb-1" style="letter-spacing: 0.04em;">
+            DEPARTMENT OF LEGAL METROLOGY — WEIGHTS &amp; MEASURES DIVISION
+          </h1>
+          <div class="small text-muted mb-3">
+            Digital Statutory Compliance &amp; Metrological Verification Registry
+          </div>
+          <div class="d-inline-block px-4 py-1 border border-2 border-dark rounded-1 fw-bold text-uppercase" style="letter-spacing: 0.06em; font-size: 0.95rem;">
+            CERTIFICATE OF VERIFICATION
+          </div>
+        </div>
+
+        <!-- Certificate Meta Banner -->
+        <div class="row g-3 align-items-center bg-light border rounded p-3 mb-4">
+          <div class="col-md-4">
+            <div class="text-muted small text-uppercase" style="font-size: 0.7rem;">Certificate Number</div>
+            <div class="fs-5 fw-bold text-primary tabular-numbers">{{ certificate.certificate_number }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-muted small text-uppercase" style="font-size: 0.7rem;">Application Reference</div>
+            <div class="fw-semibold tabular-numbers">{{ certificate.application.application_number }}</div>
+          </div>
+          <div class="col-md-4 text-md-end">
+            <div class="text-muted small text-uppercase" style="font-size: 0.7rem;">Verification Status</div>
+            {% if certificate.effective_status == 'VALID' %}
+              <span class="status-pill status-verified"><span class="status-dot"></span>VALID</span>
+            {% elif certificate.effective_status == 'REVOKED' %}
+              <span class="status-pill status-expired"><span class="status-dot"></span>REVOKED</span>
+            {% else %}
+              <span class="status-pill status-pending"><span class="status-dot"></span>EXPIRED</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Instrument & Owner Details -->
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.76rem; letter-spacing: 0.05em;">
+              Verified Instrument Particulars
+            </h2>
+            <dl class="row small mb-0">
+              <dt class="col-sm-5 text-muted mb-2">Instrument ID:</dt>
+              <dd class="col-sm-7 fw-bold tabular-numbers mb-2">{{ certificate.instrument.instrument_id }}</dd>
+
+              <dt class="col-sm-5 text-muted mb-2">Instrument Name:</dt>
+              <dd class="col-sm-7 fw-semibold mb-2">{{ certificate.instrument.instrument_name }}</dd>
+
+              <dt class="col-sm-5 text-muted mb-2">Instrument Type:</dt>
+              <dd class="col-sm-7 mb-2">{{ certificate.instrument.get_instrument_type_display }} ({{ certificate.instrument.category.name }})</dd>
+
+              <dt class="col-sm-5 text-muted mb-2">Make &amp; Model:</dt>
+              <dd class="col-sm-7 mb-2">{{ certificate.instrument.manufacturer }} — {{ certificate.instrument.model_number }}</dd>
+
+              <dt class="col-sm-5 text-muted mb-2">Serial Number:</dt>
+              <dd class="col-sm-7 tabular-numbers mb-2"><code>{{ certificate.instrument.serial_number }}</code></dd>
+
+              <dt class="col-sm-5 text-muted mb-0">Capacity / Class:</dt>
+              <dd class="col-sm-7 tabular-numbers mb-0">{{ certificate.instrument.capacity }} ({{ certificate.instrument.get_accuracy_class_display }})</dd>
+            </dl>
+          </div>
+
+          <div class="col-md-6">
+            <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.76rem; letter-spacing: 0.05em;">
+              Owner &amp; Validity Particulars
+            </h2>
+            <dl class="row small mb-0">
+              <dt class="col-sm-5 text-muted mb-2">Owner / Enterprise:</dt>
+              <dd class="col-sm-7 fw-semibold mb-2">
+                {% if certificate.instrument.owner.owner_profile %}
+                  {{ certificate.instrument.owner.owner_profile.business_name }} ({{ certificate.instrument.owner.display_name }})
+                {% else %}
+                  {{ certificate.instrument.owner.display_name }}
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-5 text-muted mb-2">Location / Premises:</dt>
+              <dd class="col-sm-7 mb-2">{{ certificate.instrument.location }}, {{ certificate.instrument.address }}, {{ certificate.instrument.district }}, {{ certificate.instrument.state }}</dd>
+
+              <dt class="col-sm-5 text-muted mb-2">Verification Date:</dt>
+              <dd class="col-sm-7 tabular-numbers fw-semibold mb-2">{{ certificate.issue_date|date:"d F Y" }}</dd>
+
+              <dt class="col-sm-5 text-muted mb-2">Valid Until Date:</dt>
+              <dd class="col-sm-7 tabular-numbers fw-bold {% if certificate.is_currently_valid %}text-success{% else %}text-danger{% endif %} mb-2">
+                {{ certificate.valid_until|date:"d F Y" }}
+              </dd>
+
+              <dt class="col-sm-5 text-muted mb-0">Certifying Authority:</dt>
+              <dd class="col-sm-7 fw-semibold mb-0">{{ certificate.authorized_verifier_display }}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Compliance Declaration -->
+        <div class="p-3 bg-light rounded small border mb-4">
+          <p class="mb-0">
+            <strong>Compliance Attestation:</strong> This document certifies that the weighing or measuring instrument identified above was inspected and tested against reference standards in accordance with prescribed metrological verification procedures and found compliant on the date of verification.
+          </p>
+        </div>
+
+        <!-- QR Code + Digital Verification Identifier + Signatory -->
+        <div class="row g-4 pt-3 border-top align-items-center">
+          <div class="col-md-3 text-center">
+            <div class="p-2 border rounded d-inline-block bg-white">
+              {{ qr_svg|safe }}
+              <div class="text-muted fw-semibold mt-1" style="font-size: 0.65rem; letter-spacing: 0.04em;">SCAN TO VERIFY</div>
+            </div>
+          </div>
+
+          <div class="col-md-5 small">
+            <div class="mb-2">
+              <div class="text-muted text-uppercase" style="font-size: 0.68rem;">Public Verification URL</div>
+              <a href="{{ public_verify_path }}" target="_blank" class="font-monospace small text-break text-decoration-none">{{ absolute_verify_url }}</a>
+            </div>
+            <div class="mb-2">
+              <div class="text-muted text-uppercase" style="font-size: 0.68rem;">Secure Verification Token</div>
+              <code class="small text-break">{{ certificate.verification_token }}</code>
+            </div>
+            <div>
+              <div class="text-muted text-uppercase" style="font-size: 0.68rem;">Digital Verification SHA-256 Hash</div>
+              <code class="small text-break" style="font-size: 0.72rem;">{{ certificate.certificate_hash }}</code>
+            </div>
+          </div>
+
+          <div class="col-md-4 text-md-end">
+            <div class="d-inline-block text-start text-md-end border-top pt-2" style="min-width: 210px;">
+              <div class="fw-bold text-dark">{{ certificate.authorized_verifier_display }}</div>
+              <div class="small text-muted">Authorized Verifying Officer / Test Centre</div>
+              <div class="small text-muted tabular-numbers">Issued: {{ certificate.generated_at|date:"d M Y H:i" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin-Only Certificate Revocation Panel -->
+      {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
+        {% if certificate.verification_status != 'REVOKED' %}
+          <div class="gov-card mt-4 border-danger no-print">
+            <div class="gov-card-header bg-danger-subtle">
+              <h2 class="gov-card-title text-danger"><i class="bi bi-shield-exclamation me-2"></i>Administrative Certificate Revocation Control</h2>
+            </div>
+            <div class="gov-card-body">
+              <p class="small text-muted mb-3">
+                Issued certificates are immutable and cannot be edited by ordinary users. If an instrument is found tampered or non-compliant during a surprise inspection, an Administrator may formally revoke this certificate.
+              </p>
+              <form method="post" action="{% url 'certificates:revoke' certificate.certificate_number %}" class="row g-2 align-items-center">
+                {% csrf_token %}
+                <div class="col-md-8">
+                  <input type="text" name="revocation_reason" class="form-control form-control-sm" placeholder="Enter mandatory official reason for revoking this certificate..." required>
+                </div>
+                <div class="col-md-4">
+                  <button type="submit" class="btn btn-danger btn-sm w-100 fw-semibold">
+                    <i class="bi bi-x-octagon me-1"></i>Revoke Certificate
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

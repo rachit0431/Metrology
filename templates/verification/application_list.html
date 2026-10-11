@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Verification Applications — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Verification Applications</li>
+        </ol>
+      </nav>
+
+      <!-- Header -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+          <h1 class="h4 fw-bold text-dark mb-1">Verification &amp; Re-Verification Applications</h1>
+          <p class="small text-muted mb-0">
+            Total Applications in Docket: <strong class="tabular-numbers">{{ total_count }}</strong>
+          </p>
+        </div>
+        {% if user.is_superuser or user.role == 'INSTRUMENT_OWNER' or user.role == 'ADMIN' %}
+        <div class="mt-3 mt-md-0">
+          <a href="{% url 'verification:create' %}" class="btn btn-gov-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>New Verification Application
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Search & Filter Bar -->
+      <div class="gov-card p-3 mb-4">
+        <form method="get" class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold text-muted mb-1">Search Applications</label>
+            <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="App No., Instrument ID, Serial, Location...">
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Workflow Status</label>
+            <select name="status" class="form-select form-select-sm">
+              <option value="">All Statuses</option>
+              {% for code, label in status_choices %}
+                <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Application Type</label>
+            <select name="application_type" class="form-select form-select-sm">
+              <option value="">All Types</option>
+              {% for code, label in type_choices %}
+                <option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-gov-primary btn-sm w-100">
+              <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+            {% if q or status_filter or type_filter or district_filter %}
+              <a href="{% url 'verification:list' %}" class="btn btn-outline-secondary btn-sm" title="Reset">
+                <i class="bi bi-x-lg"></i>
+              </a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+
+      <!-- Applications Table -->
+      <div class="gov-card">
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Application No.</th>
+                <th>Instrument</th>
+                <th>Owner / Applicant</th>
+                <th>Type</th>
+                <th>Scheduled Date</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in applications %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">
+                    <a href="{% url 'verification:detail' app.pk %}" class="text-decoration-none">
+                      {{ app.application_number }}
+                    </a>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ app.instrument.instrument_name }}</div>
+                    <div class="small text-muted tabular-numbers">{{ app.instrument.instrument_id }} · S/N: {{ app.instrument.serial_number }}</div>
+                  </td>
+                  <td class="small">{{ app.applicant.display_name }}</td>
+                  <td class="small">{{ app.get_application_type_display }}</td>
+                  <td class="tabular-numbers small">
+                    {% if app.scheduled_date %}
+                      <strong>{{ app.scheduled_date|date:"d M Y" }}</strong>
+                    {% elif app.preferred_date %}
+                      <span class="text-muted">Pref: {{ app.preferred_date|date:"d M Y" }}</span>
+                    {% else %}
+                      <span class="text-muted">Unscheduled</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-truncate" style="max-width: 180px;" title="{{ app.location }}">
+                    {{ app.location }}
+                  </td>
+                  <td>
+                    <span class="status-pill {% if app.status == 'PASSED' or app.status == 'CERTIFICATE_ISSUED' %}status-verified{% elif app.status == 'FAILED' or app.status == 'REJECTED' or app.status == 'CANCELLED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ app.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'verification:detail' app.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                      Manage / View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center py-5 text-muted small">
+                    <i class="bi bi-clipboard-x fs-2 d-block text-secondary opacity-50 mb-2"></i>
+                    No verification applications match the selected filters.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

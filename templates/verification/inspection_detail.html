@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Inspection {{ inspection.inspection_number }} — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'verification:detail' application.pk %}" class="text-decoration-none">{{ application.application_number }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ inspection.inspection_number }}</li>
+        </ol>
+      </nav>
+
+      <div class="gov-card mb-4">
+        <div class="gov-card-header">
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h1 class="gov-card-title mb-0">Digital Inspection Report: <span class="tabular-numbers text-primary">{{ inspection.inspection_number }}</span></h1>
+              {% if inspection.result == 'PASS' %}
+                <span class="status-pill status-verified"><span class="status-dot"></span>PASS</span>
+              {% elif inspection.result == 'FAIL' %}
+                <span class="status-pill status-expired"><span class="status-dot"></span>FAIL</span>
+              {% else %}
+                <span class="status-pill status-pending"><span class="status-dot"></span>CONDITIONAL / REVIEW REQUIRED</span>
+              {% endif %}
+              {% if inspection.is_locked %}
+                <span class="badge bg-secondary-subtle text-secondary border"><i class="bi bi-lock-fill me-1"></i>Locked Record</span>
+              {% else %}
+                <span class="badge bg-warning-subtle text-dark border"><i class="bi bi-unlock-fill me-1"></i>Unlocked for Correction</span>
+              {% endif %}
+            </div>
+            <p class="small text-muted mb-0 mt-1">
+              Application: <a href="{% url 'verification:detail' application.pk %}" class="fw-semibold text-decoration-none tabular-numbers">{{ application.application_number }}</a> ·
+              Inspected on <strong class="tabular-numbers">{{ inspection.inspection_date|date:"d M Y" }}</strong> by <strong>{{ inspection.inspector.display_name }}</strong>
+            </p>
+          </div>
+          <div class="d-flex gap-2">
+            {% if not inspection.is_locked and application. assigned_officer == request.user or not inspection.is_locked and application.assigned_gatc == request.user or not inspection.is_locked and request.user.role == 'ADMIN' or not inspection.is_locked and request.user.is_superuser %}
+              <a href="{% url 'verification:inspect' application.pk %}" class="btn btn-warning btn-sm fw-semibold">
+                <i class="bi bi-pencil-square me-1"></i>Edit Unlocked Inspection
+              </a>
+            {% endif %}
+            {% if application.certificate %}
+              <a href="{% url 'certificates:detail' application.certificate.certificate_number %}" class="btn btn-gov-primary btn-sm">
+                <i class="bi bi-patch-check me-1"></i>View Digital Certificate
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="gov-card-body">
+          <div class="row g-4 mb-4">
+            <div class="col-md-6">
+              <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.76rem; letter-spacing: 0.05em;">
+                Instrument Particulars
+              </h2>
+              <dl class="row small mb-0">
+                <dt class="col-sm-5 text-muted mb-2">Registration ID</dt>
+                <dd class="col-sm-7 fw-bold tabular-numbers mb-2">{{ instrument.instrument_id }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Instrument</dt>
+                <dd class="col-sm-7 fw-semibold mb-2">{{ instrument.instrument_name }} ({{ instrument.get_instrument_type_display }})</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Make / Model / Serial</dt>
+                <dd class="col-sm-7 tabular-numbers mb-2">{{ instrument.manufacturer }} · {{ instrument.model_number }} · <code>{{ instrument.serial_number }}</code></dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Capacity &amp; Class</dt>
+                <dd class="col-sm-7 tabular-numbers mb-2">{{ instrument.capacity }} ({{ instrument.get_accuracy_class_display }})</dd>
+
+                <dt class="col-sm-5 text-muted mb-0">Owner</dt>
+                <dd class="col-sm-7 mb-0">{{ instrument.owner.display_name }}</dd>
+              </dl>
+            </div>
+
+            <div class="col-md-6">
+              <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.76rem; letter-spacing: 0.05em;">
+                Inspection Context
+              </h2>
+              <dl class="row small mb-0">
+                <dt class="col-sm-5 text-muted mb-2">Inspection No.</dt>
+                <dd class="col-sm-7 fw-bold tabular-numbers mb-2">{{ inspection.inspection_number }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Inspector / Authority</dt>
+                <dd class="col-sm-7 fw-semibold mb-2">{{ inspection.inspector.display_name }} ({{ inspection.inspector.get_role_display }})</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Inspection Date</dt>
+                <dd class="col-sm-7 tabular-numbers mb-2">{{ inspection.inspection_date|date:"d M Y" }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Location</dt>
+                <dd class="col-sm-7 mb-2">{{ inspection.location }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-0">Physical &amp; Seal Condition</dt>
+                <dd class="col-sm-7 fw-semibold mb-0">{{ inspection.get_instrument_condition_display }}</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="p-3 bg-light border rounded h-100">
+                <h3 class="h6 fw-bold text-uppercase text-secondary mb-2" style="font-size: 0.75rem;">Test Parameters &amp; Reference Standards</h3>
+                <pre class="small mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ inspection.test_parameters }}</pre>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light border rounded h-100">
+                <h3 class="h6 fw-bold text-uppercase text-secondary mb-2" style="font-size: 0.75rem;">Observed Metrological Readings</h3>
+                <pre class="small font-monospace mb-0" style="white-space: pre-wrap;">{{ inspection.observed_readings }}</pre>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="p-3 border rounded {% if inspection.result == 'FAIL' %}bg-danger-subtle border-danger-subtle{% elif inspection.result == 'PASS' %}bg-success-subtle border-success-subtle{% else %}bg-warning-subtle{% endif %}">
+                <h3 class="h6 fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">Official Inspector Remarks &amp; Determination ({{ inspection.get_result_display }})</h3>
+                <p class="small mb-0">{{ inspection.remarks }}</p>
+              </div>
+            </div>
+
+            {% if inspection.supporting_document %}
+              <div class="col-12">
+                <div class="p-3 border rounded bg-white d-flex justify-content-between align-items-center">
+                  <div class="small">
+                    <i class="bi bi-paperclip me-1 text-primary"></i>
+                    <strong>Supporting Attachment:</strong> <code>{{ inspection.supporting_document.name }}</code>
+                  </div>
+                  <a href="{{ inspection.supporting_document.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-download me-1"></i>View Attachment
+                  </a>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
+        {% if inspection.is_locked %}
+          <div class="gov-card border-warning">
+            <div class="gov-card-header bg-warning-subtle">
+              <h2 class="gov-card-title"><i class="bi bi-shield-lock me-2"></i>Administrative Correction Authorization</h2>
+            </div>
+            <div class="gov-card-body">
+              <p class="small text-muted mb-3">
+                Completed inspections are immutable by default. As an Administrator, you may unlock this inspection record for a documented correction.
+              </p>
+              <form method="post" action="{% url 'verification:inspection_unlock' inspection.pk %}" class="row g-2 align-items-center">
+                {% csrf_token %}
+                <div class="col-md-8">
+                  <input type="text" name="correction_reason" class="form-control form-control-sm" placeholder="Enter mandatory administrative reason for unlocking this inspection record..." required>
+                </div>
+                <div class="col-md-4">
+                  <button type="submit" class="btn btn-warning btn-sm w-100 fw-semibold">
+                    <i class="bi bi-unlock me-1"></i>Authorize Correction Unlock
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

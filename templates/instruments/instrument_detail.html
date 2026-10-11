@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ instrument.instrument_id }} — {{ instrument.instrument_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'instruments:list' %}" class="text-decoration-none">Instruments Registry</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ instrument.instrument_id }}</li>
+        </ol>
+      </nav>
+
+      <!-- Header -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+          <div class="small text-muted tabular-numbers mb-1">
+            Registration No: <strong class="text-primary">{{ instrument.instrument_id }}</strong>
+            <span class="mx-1">·</span>
+            Registered on {{ instrument.registration_date|date:"d M Y" }}
+          </div>
+          <h1 class="h4 fw-bold text-dark mb-0">{{ instrument.instrument_name }}</h1>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex flex-wrap align-items-center gap-2">
+          <span class="status-pill {% if instrument.status == 'VERIFIED' %}status-verified{% elif instrument.status == 'FAILED' or instrument.status == 'EXPIRED' or instrument.status == 'SUSPENDED' %}status-expired{% else %}status-pending{% endif %}">
+            <span class="status-dot"></span>{{ instrument.get_status_display }}
+          </span>
+          {% if user.is_superuser or user.role == 'ADMIN' or instrument.owner_id == user.id and instrument.can_owner_edit %}
+            <a href="{% url 'instruments:edit' instrument.pk %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-pencil-square me-1"></i>Edit Instrument
+            </a>
+          {% endif %}
+          {% if user.is_superuser or user.role == 'ADMIN' or instrument.owner_id == user.id %}
+            <a href="{% url 'verification:create_for_instrument' instrument.pk %}" class="btn btn-gov-primary btn-sm">
+              <i class="bi bi-file-earmark-check me-1"></i>Apply for Verification
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Specifications Grid -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-7">
+          <div class="gov-card h-100">
+            <h2 class="gov-card-title mb-3 border-bottom pb-2">Metrological &amp; Technical Specifications</h2>
+            <dl class="row small mb-0 g-2">
+              <dt class="col-sm-5 text-muted">Unique Registration ID:</dt>
+              <dd class="col-sm-7 tabular-numbers fw-bold text-primary">{{ instrument.instrument_id }}</dd>
+
+              <dt class="col-sm-5 text-muted">Instrument Type:</dt>
+              <dd class="col-sm-7 fw-semibold">{{ instrument.get_instrument_type_display }}</dd>
+
+              <dt class="col-sm-5 text-muted">Statutory Category:</dt>
+              <dd class="col-sm-7">{{ instrument.category.name }} ({{ instrument.category.code }})</dd>
+
+              <dt class="col-sm-5 text-muted">Manufacturer:</dt>
+              <dd class="col-sm-7">{{ instrument.manufacturer }}</dd>
+
+              <dt class="col-sm-5 text-muted">Model / Approval No.:</dt>
+              <dd class="col-sm-7 tabular-numbers">{{ instrument.model_number }}</dd>
+
+              <dt class="col-sm-5 text-muted">Serial Number:</dt>
+              <dd class="col-sm-7 tabular-numbers fw-semibold">{{ instrument.serial_number }}</dd>
+
+              <dt class="col-sm-5 text-muted">Capacity &amp; Interval (e):</dt>
+              <dd class="col-sm-7 tabular-numbers">{{ instrument.capacity }}</dd>
+
+              <dt class="col-sm-5 text-muted">Accuracy Class:</dt>
+              <dd class="col-sm-7">{{ instrument.get_accuracy_class_display }}</dd>
+
+              <dt class="col-sm-5 text-muted">Year of Manufacture:</dt>
+              <dd class="col-sm-7 tabular-numbers">{{ instrument.year_of_manufacture }}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="col-md-5">
+          <div class="gov-card h-100">
+            <h2 class="gov-card-title mb-3 border-bottom pb-2">Ownership, Location &amp; Compliance</h2>
+            <dl class="row small mb-0 g-2">
+              <dt class="col-sm-5 text-muted">Registered Owner:</dt>
+              <dd class="col-sm-7 fw-semibold">{{ instrument.owner.display_name }}</dd>
+
+              <dt class="col-sm-5 text-muted">Placement / Bay:</dt>
+              <dd class="col-sm-7">{{ instrument.location }}</dd>
+
+              <dt class="col-sm-5 text-muted">Premises Address:</dt>
+              <dd class="col-sm-7">{{ instrument.address }}</dd>
+
+              <dt class="col-sm-5 text-muted">District &amp; State:</dt>
+              <dd class="col-sm-7">{{ instrument.district }}, {{ instrument.state }}</dd>
+
+              <dt class="col-sm-5 text-muted">Current Status:</dt>
+              <dd class="col-sm-7 fw-semibold">{{ instrument.get_status_display }}</dd>
+
+              <dt class="col-sm-5 text-muted">Last Verified Date:</dt>
+              <dd class="col-sm-7 tabular-numbers">{{ instrument.last_verified_date|date:"d M Y"|default:"Never Verified" }}</dd>
+
+              <dt class="col-sm-5 text-muted">Next Verification Date:</dt>
+              <dd class="col-sm-7 tabular-numbers">
+                {% if instrument.next_verification_date %}
+                  {{ instrument.next_verification_date|date:"d M Y" }}
+                {% else %}
+                  Pending Verification
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-5 text-muted">Edit Eligibility:</dt>
+              <dd class="col-sm-7">
+                {% if instrument.can_owner_edit %}
+                  <span class="text-success fw-semibold">Editable before verification</span>
+                {% else %}
+                  <span class="text-secondary">Locked (Under verification or Verified)</span>
+                {% endif %}
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verification Applications for this Instrument -->
+      <div class="gov-card mb-4">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title">Verification &amp; Re-Verification Applications</h2>
+          {% if user.is_superuser or user.role == 'ADMIN' or instrument.owner_id == user.id %}
+            <a href="{% url 'verification:create_for_instrument' instrument.pk %}" class="btn btn-gov-primary btn-sm">
+              <i class="bi bi-plus-circle me-1"></i>New Application
+            </a>
+          {% endif %}
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Application No.</th>
+                <th>Type</th>
+                <th>Submitted</th>
+                <th>Scheduled Date</th>
+                <th>Assigned LMO / GATC</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in applications %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">{{ app.application_number }}</td>
+                  <td>{{ app.get_application_type_display }}</td>
+                  <td class="tabular-numbers small">{{ app.submitted_at|date:"d M Y"|default:"Draft" }}</td>
+                  <td class="tabular-numbers small">{{ app.scheduled_date|date:"d M Y"|default:"Unscheduled" }}</td>
+                  <td class="small">
+                    {% if app.assigned_officer %}LMO: {{ app.assigned_officer.display_name }}{% endif %}
+                    {% if app.assigned_gatc %}<div class="text-muted">GATC: {{ app.assigned_gatc.display_name }}</div>{% endif %}
+                    {% if not app.assigned_officer and not app.assigned_gatc %}<span class="text-muted">Unassigned</span>{% endif %}
+                  </td>
+                  <td>
+                    <span class="status-pill {% if app.status == 'PASSED' or app.status == 'CERTIFICATE_ISSUED' %}status-verified{% elif app.status == 'FAILED' or app.status == 'REJECTED' or app.status == 'CANCELLED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ app.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'verification:detail' app.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                      Open Docket
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted small">
+                    No verification applications have been filed for this instrument yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Immutable Instrument History / Audit Trail -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <div>
+            <h2 class="gov-card-title">Instrument &amp; Verification Audit History</h2>
+            <p class="small text-muted mb-0">Immutable statutory event log recorded for this instrument</p>
+          </div>
+          <span class="small text-muted"><i class="bi bi-lock-fill me-1"></i>Read-Only Audit Trail</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Event / Action</th>
+                <th>Related Record</th>
+                <th>Transition</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in audit_logs %}
+                <tr>
+                  <td class="tabular-numbers small text-nowrap">{{ log.timestamp|date:"d M Y, H:i" }}</td>
+                  <td class="small fw-semibold">{{ log.actor.display_name|default:"System" }}</td>
+                  <td class="small text-dark">{{ log.action }}</td>
+                  <td class="small tabular-numbers">{{ log.related_object_repr }}</td>
+                  <td class="small tabular-numbers">
+                    {% if log.previous_status or log.new_status %}
+                      {{ log.previous_status|default:"—" }} &rarr; <strong>{{ log.new_status|default:"—" }}</strong>
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ log.remarks|default:"—" }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center py-4 text-muted small">
+                    No audit trail entries recorded yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

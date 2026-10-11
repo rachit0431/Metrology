@@ -1,0 +1,379 @@
+{% extends 'base.html' %}
+
+{% block title %}Application {{ application.application_number }} — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'verification:list' %}" class="text-decoration-none">Verification Applications</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ application.application_number }}</li>
+        </ol>
+      </nav>
+
+      <!-- Header Banner -->
+      <div class="gov-card mb-4">
+        <div class="gov-card-header">
+          <div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <h1 class="gov-card-title mb-0 tabular-numbers">{{ application.application_number }}</h1>
+              {% if application.status == 'PASSED' or application.status == 'CERTIFICATE_ISSUED' %}
+                <span class="status-pill status-verified"><span class="status-dot"></span>{{ application.get_status_display }}</span>
+              {% elif application.status == 'FAILED' or application.status == 'REJECTED' or application.status == 'CANCELLED' %}
+                <span class="status-pill status-expired"><span class="status-dot"></span>{{ application.get_status_display }}</span>
+              {% else %}
+                <span class="status-pill status-pending"><span class="status-dot"></span>{{ application.get_status_display }}</span>
+              {% endif %}
+            </div>
+            <p class="small text-muted mb-0 mt-1">
+              {{ application.get_application_type_display }} · Instrument:
+              <a href="{% url 'instruments:detail' application.instrument.pk %}" class="fw-semibold text-decoration-none">{{ application.instrument.instrument_id }} ({{ application.instrument.instrument_name }})</a>
+            </p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            {% if can_inspect %}
+              <a href="{% url 'verification:inspect' application.pk %}" class="btn btn-gov-primary btn-sm">
+                <i class="bi bi-clipboard2-pulse me-1"></i>Perform Digital Inspection
+              </a>
+            {% endif %}
+            {% if certificate %}
+              <a href="{% url 'certificates:detail' certificate.certificate_number %}" class="btn btn-success btn-sm">
+                <i class="bi bi-patch-check me-1"></i>Certificate {{ certificate.certificate_number }}
+              </a>
+            {% elif application.status == 'PASSED' %}
+              {% if request.user.is_superuser or request.user.role in 'ADMIN,LMO,GATC' %}
+                <form method="post" action="{% url 'certificates:generate' application.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-success btn-sm">
+                    <i class="bi bi-award me-1"></i>Generate Digital Certificate
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+            {% if application.status == 'FAILED' %}
+              {% if request.user == application.applicant or request.user.role == 'ADMIN' or request.user.is_superuser %}
+                <a href="{% url 'verification:create_for_instrument' application.instrument.pk %}" class="btn btn-gov-primary btn-sm">
+                  <i class="bi bi-arrow-repeat me-1"></i>Apply for Re-Verification
+                </a>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Visual Workflow Stepper -->
+        <div class="gov-card-body border-bottom bg-light py-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+            {% for code, label in workflow_steps %}
+              <div class="d-flex align-items-center gap-1 {% if application.status == code %}fw-bold text-primary{% else %}text-muted{% endif %}">
+                <span class="badge rounded-pill {% if application.status == code %}bg-primary{% else %}bg-secondary bg-opacity-50{% endif %}">{{ forloop.counter }}</span>
+                <span>{{ label }}</span>
+              </div>
+              {% if not forloop.last %}
+                <span class="text-muted d-none d-md-inline">&rarr;</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="gov-card-body">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.76rem; letter-spacing: 0.05em;">
+                Application &amp; Instrument Summary
+              </h2>
+              <dl class="row small mb-0">
+                <dt class="col-sm-5 text-muted mb-2">Application Number</dt>
+                <dd class="col-sm-7 fw-bold tabular-numbers mb-2">{{ application.application_number }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Instrument</dt>
+                <dd class="col-sm-7 fw-semibold mb-2">
+                  <a href="{% url 'instruments:detail' application.instrument.pk %}" class="text-decoration-none">{{ application.instrument.instrument_name }}</a>
+                  <div class="text-muted tabular-numbers">ID: {{ application.instrument.instrument_id }} · SN: {{ application.instrument.serial_number }}</div>
+                </dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Applicant (Owner)</dt>
+                <dd class="col-sm-7 mb-2">{{ application.applicant.display_name }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Application Type</dt>
+                <dd class="col-sm-7 mb-2">{{ application.get_application_type_display }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-0">Verification Location</dt>
+                <dd class="col-sm-7 mb-0">{{ application.location }}</dd>
+              </dl>
+            </div>
+
+            <div class="col-md-6">
+              <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.76rem; letter-spacing: 0.05em;">
+                Assignment, Schedule &amp; Remarks
+              </h2>
+              <dl class="row small mb-0">
+                <dt class="col-sm-5 text-muted mb-2">Assigned LMO Officer</dt>
+                <dd class="col-sm-7 fw-semibold mb-2">
+                  {% if application.assigned_officer %}{{ application.assigned_officer.display_name }}{% else %}<span class="text-muted">Not Assigned</span>{% endif %}
+                </dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Assigned GATC Centre</dt>
+                <dd class="col-sm-7 fw-semibold mb-2">
+                  {% if application.assigned_gatc %}{{ application.assigned_gatc.display_name }}{% else %}<span class="text-muted">Not Assigned</span>{% endif %}
+                </dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Preferred Date</dt>
+                <dd class="col-sm-7 tabular-numbers mb-2">{{ application.preferred_date|date:"d M Y"|default:"—" }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-2">Scheduled Date</dt>
+                <dd class="col-sm-7 tabular-numbers fw-bold text-primary mb-2">{{ application.scheduled_date|date:"d M Y"|default:"Pending Schedule" }}</dd>
+
+                <dt class="col-sm-5 text-muted mb-0">Official Remarks</dt>
+                <dd class="col-sm-7 mb-0">{{ application.remarks|default:"No remarks recorded." }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Digital Inspection Results Section -->
+      {% if latest_inspection %}
+        <div class="gov-card mb-4 {% if latest_inspection.result == 'FAIL' %}border-danger{% elif latest_inspection.result == 'PASS' %}border-success{% endif %}">
+          <div class="gov-card-header {% if latest_inspection.result == 'FAIL' %}bg-danger-subtle{% elif latest_inspection.result == 'PASS' %}bg-success-subtle{% endif %}">
+            <div>
+              <h2 class="gov-card-title mb-0">
+                Digital Inspection Outcome:
+                {% if latest_inspection.result == 'PASS' %}
+                  <span class="text-success fw-bold">PASSED ({{ latest_inspection.inspection_number }})</span>
+                {% elif latest_inspection.result == 'FAIL' %}
+                  <span class="text-danger fw-bold">FAILED ({{ latest_inspection.inspection_number }})</span>
+                {% else %}
+                  <span class="text-warning fw-bold">CONDITIONAL / REVIEW REQUIRED ({{ latest_inspection.inspection_number }})</span>
+                {% endif %}
+              </h2>
+              <p class="small text-muted mb-0">
+                Inspected on <strong class="tabular-numbers">{{ latest_inspection.inspection_date|date:"d M Y" }}</strong>
+                by <strong>{{ latest_inspection.inspector.display_name }}</strong> ·
+                Condition: <strong>{{ latest_inspection.get_instrument_condition_display }}</strong>
+              </p>
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{% url 'verification:inspection_detail' latest_inspection.pk %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-earmark-medical me-1"></i>Full Inspection Report
+              </a>
+              {% if latest_inspection.result == 'FAIL' %}
+                {% if request.user == application.applicant or request.user.role == 'ADMIN' or request.user.is_superuser %}
+                  <a href="{% url 'verification:create_for_instrument' application.instrument.pk %}" class="btn btn-danger btn-sm">
+                    <i class="bi bi-arrow-repeat me-1"></i>Submit Re-Verification Request
+                  </a>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+          <div class="gov-card-body">
+            <div class="row g-3 small">
+              <div class="col-md-6">
+                <div class="text-muted fw-semibold mb-1">Observed Metrological Readings:</div>
+                <pre class="p-2 bg-light border rounded font-monospace small mb-0" style="white-space: pre-wrap;">{{ latest_inspection.observed_readings }}</pre>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted fw-semibold mb-1">Inspector Remarks / Reasons &amp; Observations:</div>
+                <div class="p-2 bg-light border rounded mb-2">{{ latest_inspection.remarks }}</div>
+                <div class="text-muted"><strong>Test Parameters:</strong> {{ latest_inspection.test_parameters }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Issued Certificate Banner -->
+      {% if certificate %}
+        <div class="gov-card mb-4 border-success">
+          <div class="gov-card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <div class="small text-uppercase text-success fw-bold">Official Digital Verification Certificate Issued</div>
+              <div class="h5 fw-bold text-navy mb-1 tabular-numbers">{{ certificate.certificate_number }}</div>
+              <div class="small text-muted">
+                Issued: <strong class="tabular-numbers">{{ certificate.issue_date|date:"d M Y" }}</strong> ·
+                Valid Until: <strong class="tabular-numbers text-success">{{ certificate.valid_until|date:"d M Y" }}</strong> ·
+                Status: <strong>{{ certificate.effective_status }}</strong>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{% url 'certificates:detail' certificate.certificate_number %}" class="btn btn-gov-primary btn-sm">
+                <i class="bi bi-award me-1"></i>View &amp; Print Certificate
+              </a>
+              <a href="{% url 'public_verify_token' certificate.verification_token %}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-qr-code me-1"></i>Public QR Verification
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Role-Authorized Workflow Action Panel -->
+      {% if allowed_transitions %}
+        <div class="gov-card mb-4">
+          <div class="gov-card-header">
+            <h2 class="gov-card-title"><i class="bi bi-sliders me-2 text-primary"></i>Authorized Workflow Transition Panel</h2>
+            <span class="badge bg-primary-subtle text-primary border">Role: {{ request.user.get_role_display }}</span>
+          </div>
+          <div class="gov-card-body">
+            {% if admin_form %}
+              <div class="alert alert-light border small py-2 mb-3">
+                <i class="bi bi-info-circle text-primary me-1"></i>
+                <strong>Statutory Assignment Hierarchy:</strong> Administration reviews the application and assigns an Approved Test Centre (<strong>GATC</strong>). The assigned GATC is responsible for assigning an eligible Legal Metrology Officer (<strong>LMO</strong>).
+              </div>
+              <form method="post" action="{% url 'verification:transition' application.pk %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label small fw-semibold">{{ admin_form.target_status.label }}</label>
+                    {{ admin_form.target_status }}
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-semibold">{{ admin_form.assigned_gatc.label }}</label>
+                    {{ admin_form.assigned_gatc }}
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-semibold">{{ admin_form.scheduled_date.label }}</label>
+                    {{ admin_form.scheduled_date }}
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label small fw-semibold">{{ admin_form.remarks.label }}</label>
+                    {{ admin_form.remarks }}
+                  </div>
+                </div>
+                <div class="mt-3 text-end">
+                  <button type="submit" class="btn btn-gov-primary btn-sm px-4">
+                    Apply Administrative Transition
+                  </button>
+                </div>
+              </form>
+            {% elif gatc_form %}
+              <div class="alert alert-light border small py-2 mb-3">
+                <i class="bi bi-building-check text-primary me-1"></i>
+                <strong>GATC Officer Assignment:</strong> Select an eligible Legal Metrology Officer (LMO) within your jurisdiction to conduct the verification inspection.
+              </div>
+              <form method="post" action="{% url 'verification:transition' application.pk %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label small fw-semibold">{{ gatc_form.target_status.label }}</label>
+                    {{ gatc_form.target_status }}
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-semibold">{{ gatc_form.assigned_officer.label }}</label>
+                    {{ gatc_form.assigned_officer }}
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-semibold">{{ gatc_form.scheduled_date.label }}</label>
+                    {{ gatc_form.scheduled_date }}
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label small fw-semibold">{{ gatc_form.remarks.label }}</label>
+                    {{ gatc_form.remarks }}
+                  </div>
+                </div>
+                <div class="mt-3 text-end">
+                  <button type="submit" class="btn btn-gov-primary btn-sm px-4">
+                    Assign LMO Officer / Update Schedule
+                  </button>
+                </div>
+              </form>
+            {% elif officer_form %}
+              <div class="d-flex flex-wrap justify-content-between align-items-center bg-light border rounded p-3 mb-3">
+                <div class="small">
+                  <strong>LMO Verification &amp; Inspection:</strong> Schedule the verification date, move to Inspection Pending, and record PASSED / FAILED outcome (or use the detailed Digital Inspection sheet).
+                </div>
+                {% if can_inspect %}
+                  <a href="{% url 'verification:inspect' application.pk %}" class="btn btn-gov-primary btn-sm">
+                    <i class="bi bi-clipboard2-pulse me-1"></i>Open Digital Inspection Form
+                  </a>
+                {% endif %}
+              </div>
+              <form method="post" action="{% url 'verification:transition' application.pk %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-semibold">{{ officer_form.target_status.label }}</label>
+                    {{ officer_form.target_status }}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-semibold">{{ officer_form.scheduled_date.label }}</label>
+                    {{ officer_form.scheduled_date }}
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label small fw-semibold">{{ officer_form.remarks.label }}</label>
+                    {{ officer_form.remarks }}
+                  </div>
+                </div>
+                <div class="mt-3 text-end">
+                  <button type="submit" class="btn btn-gov-primary btn-sm px-4">
+                    Update LMO Verification Status
+                  </button>
+                </div>
+              </form>
+            {% else %}
+              <!-- Owner Submit / Cancel Actions -->
+              <form method="post" action="{% url 'verification:transition' application.pk %}" class="d-flex flex-wrap gap-2 align-items-center">
+                {% csrf_token %}
+                <input type="hidden" name="remarks" value="Updated by Instrument Owner">
+                {% for st in allowed_transitions %}
+                  <button type="submit" name="target_status" value="{{ st }}" class="btn {% if st == 'SUBMITTED' %}btn-gov-primary{% else %}btn-outline-danger{% endif %} btn-sm">
+                    {% if st == 'SUBMITTED' %}Submit Application Now{% elif st == 'CANCELLED' %}Cancel Application{% else %}Transition to {{ st }}{% endif %}
+                  </button>
+                {% endfor %}
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Immutable Audit History -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title"><i class="bi bi-clock-history me-2 text-secondary"></i>Immutable Application Audit Trail</h2>
+          <span class="small text-muted">Tamper-evident statutory log</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Event / Action</th>
+                <th>Transition</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in audit_logs %}
+                <tr>
+                  <td class="tabular-numbers small text-muted">{{ log.timestamp|date:"d M Y H:i" }}</td>
+                  <td class="small fw-semibold">
+                    {% if log.actor %}{{ log.actor.display_name }} <span class="text-muted">({{ log.actor.get_role_display }})</span>{% else %}System{% endif %}
+                  </td>
+                  <td class="small fw-semibold">{{ log.action }}</td>
+                  <td class="small tabular-numbers">
+                    {% if log.previous_status or log.new_status %}
+                      <code>{{ log.previous_status|default:"—" }}</code> &rarr; <code>{{ log.new_status|default:"—" }}</code>
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ log.remarks|default:"—" }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted small">No audit entries recorded yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

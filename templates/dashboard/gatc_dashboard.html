@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}GATC Laboratory Console — Legal Metrology Online Verification{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Lab Header -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="role-badge-header role-badge-gatc">Approved Test Centre (GATC)</span>
+            <span class="text-muted small">Approval No: <strong class="tabular-numbers">{{ profile.approval_number|default:"GATC-CENTRE" }}</strong></span>
+          </div>
+          <h1 class="h4 fw-bold text-dark mt-1 mb-0">{{ profile.centre_name|default:user.username }}</h1>
+          <div class="small text-muted mt-1">
+            <span>Accreditation: <strong>{{ profile.accreditation_details|default:"NABL Standards" }}</strong></span>
+            <span class="mx-1">·</span>
+            <span>Facility: <strong>{{ profile.district|default:"Main Centre" }}</strong>, {{ profile.state|default:"India" }}</span>
+          </div>
+        </div>
+        <div class="mt-3 mt-md-0">
+          <a href="{% url 'verification:list' %}" class="btn btn-gov-primary btn-sm">
+            <i class="bi bi-flask me-1"></i>Calibration Docket
+          </a>
+        </div>
+      </div>
+
+      <!-- 3 Core GATC Metrics (Real DB counts) -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="metric-card">
+            <div class="metric-label">Assigned Requests</div>
+            <div class="metric-value tabular-numbers">{{ assigned_requests }}</div>
+            <div class="metric-sub">Applications assigned to your centre</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="metric-card">
+            <div class="metric-label">Pending Tests</div>
+            <div class="metric-value tabular-numbers" style="color: #d97706;">{{ pending_tests }}</div>
+            <div class="metric-sub">Assigned / Scheduled / Inspection Pending</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="metric-card">
+            <div class="metric-label">Completed Tests</div>
+            <div class="metric-value tabular-numbers" style="color: #059669;">{{ completed_tests }}</div>
+            <div class="metric-sub">Passed or Failed calibration reports</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assigned Applications Table (Part 2 GATC Foundation) -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title">Assigned Laboratory Calibration &amp; Verification Queue</h2>
+          <a href="{% url 'verification:list' %}" class="small text-decoration-none">View All &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Application Number</th>
+                <th>Instrument</th>
+                <th>Owner</th>
+                <th>Scheduled Date</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Assigned LMO</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for test in recent_tests %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">
+                    <a href="{% url 'verification:detail' test.pk %}" class="text-decoration-none">{{ test.application_number }}</a>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ test.instrument.instrument_name }}</div>
+                    <div class="small text-muted tabular-numbers">{{ test.instrument.instrument_id }} · {{ test.instrument.capacity }}</div>
+                  </td>
+                  <td class="small">{{ test.applicant.display_name }}</td>
+                  <td class="tabular-numbers small">{{ test.scheduled_date|date:"d M Y"|default:"Unscheduled" }}</td>
+                  <td class="small text-truncate" style="max-width: 160px;" title="{{ test.location }}">{{ test.location }}</td>
+                  <td>
+                    <span class="status-pill {% if test.status == 'PASSED' or test.status == 'CERTIFICATE_ISSUED' %}status-verified{% elif test.status == 'FAILED' or test.status == 'REJECTED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ test.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="small">
+                    {% if test.assigned_officer %}
+                      <span class="fw-semibold text-dark">{{ test.assigned_officer.display_name }}</span>
+                    {% else %}
+                      <span class="badge bg-warning-subtle text-warning-emphasis border">Pending LMO</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex align-items-center gap-1">
+                      {% if test.status in 'ASSIGNED,SCHEDULED' and eligible_lmos %}
+                        <form method="post" action="{% url 'verification:assign_lmo' test.pk %}" class="d-inline-flex align-items-center gap-1">
+                          {% csrf_token %}
+                          <input type="hidden" name="next" value="{% url 'dashboard:gatc' %}">
+                          <select name="assigned_officer" class="form-select form-select-sm py-0" style="font-size: 0.75rem; width: 150px;" required>
+                            <option value="">-- Assign LMO --</option>
+                            {% for lmo in eligible_lmos %}
+                              <option value="{{ lmo.pk }}" {% if test.assigned_officer_id == lmo.pk %}selected{% endif %}>
+                                {{ lmo.display_name }}
+                              </option>
+                            {% endfor %}
+                          </select>
+                          <button type="submit" class="btn btn-gov-primary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                            Assign LMO
+                          </button>
+                        </form>
+                      {% endif %}
+                      <a href="{% url 'verification:detail' test.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                        Manage
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted small">
+                    <i class="bi bi-shield-check fs-3 d-block text-secondary opacity-50 mb-2"></i>
+                    No testing requests currently assigned to this test centre.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Digital Inspection — {{ application.application_number }} — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'verification:list' %}" class="text-decoration-none">Verification Applications</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'verification:detail' application.pk %}" class="text-decoration-none">{{ application.application_number }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Perform Digital Inspection</li>
+        </ol>
+      </nav>
+
+      {% if is_correction_mode %}
+        <div class="alert alert-warning border d-flex align-items-center justify-content-between mb-3">
+          <div class="small">
+            <strong><i class="bi bi-unlock-fill me-1"></i>Authorized Correction Mode Active:</strong>
+            Inspection <code>{{ existing_inspection.inspection_number }}</code> was unlocked by
+            <strong>{{ existing_inspection.correction_unlocked_by.display_name }}</strong>
+            (Reason: <em>{{ existing_inspection.correction_reason }}</em>). Submitting this form will re-lock the record.
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="gov-card mb-4">
+        <div class="gov-card-header">
+          <div>
+            <h1 class="gov-card-title">Digital Metrological Inspection Record</h1>
+            <p class="small text-muted mb-0">
+              Application <strong class="tabular-numbers">{{ application.application_number }}</strong> ·
+              Inspector: <strong>{{ request.user.display_name }}</strong> ({{ request.user.get_role_display }})
+            </p>
+          </div>
+          <span class="status-pill status-pending"><span class="status-dot"></span>{{ application.get_status_display }}</span>
+        </div>
+
+        <div class="gov-card-body">
+          <!-- SECTION 1: Instrument Information (Read-Only Summary) -->
+          <div class="p-3 bg-light border rounded mb-4">
+            <h2 class="h6 fw-bold text-uppercase text-secondary mb-3" style="font-size: 0.76rem; letter-spacing: 0.05em;">
+              1. Instrument Information
+            </h2>
+            <div class="row g-3 small">
+              <div class="col-md-3">
+                <div class="text-muted">Registration ID</div>
+                <div class="fw-bold text-primary tabular-numbers">{{ instrument.instrument_id }}</div>
+              </div>
+              <div class="col-md-3">
+                <div class="text-muted">Instrument Name / Type</div>
+                <div class="fw-semibold">{{ instrument.instrument_name }} ({{ instrument.get_instrument_type_display }})</div>
+              </div>
+              <div class="col-md-3">
+                <div class="text-muted">Make / Model / Serial</div>
+                <div class="tabular-numbers">{{ instrument.manufacturer }} · {{ instrument.model_number }} · <code>{{ instrument.serial_number }}</code></div>
+              </div>
+              <div class="col-md-3">
+                <div class="text-muted">Capacity &amp; Class</div>
+                <div class="tabular-numbers">{{ instrument.capacity }} ({{ instrument.get_accuracy_class_display }})</div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted">Owner / Organization</div>
+                <div class="fw-semibold">{{ application.applicant.display_name }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted">Registered Premises</div>
+                <div>{{ instrument.location }}, {{ instrument.address }}, {{ instrument.district }}, {{ instrument.state }}</div>
+              </div>
+            </div>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <!-- SECTION 2: Inspection Details -->
+            <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.78rem; letter-spacing: 0.05em;">
+              2. Inspection Details
+            </h2>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">{{ form.inspection_date.label }} <span class="text-danger">*</span></label>
+                {{ form.inspection_date }}
+                {% if form.inspection_date.errors %}<div class="text-danger small mt-1">{{ form.inspection_date.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">{{ form.instrument_condition.label }} <span class="text-danger">*</span></label>
+                {{ form.instrument_condition }}
+                {% if form.instrument_condition.errors %}<div class="text-danger small mt-1">{{ form.instrument_condition.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">{{ form.location.label }} <span class="text-danger">*</span></label>
+                {{ form.location }}
+                {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+
+            <!-- SECTION 3: Observed / Test Results -->
+            <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.78rem; letter-spacing: 0.05em;">
+              3. Observed &amp; Metrological Test Results
+            </h2>
+            <div class="row g-3 mb-4">
+              <div class="col-md-12">
+                <label class="form-label small fw-semibold">{{ form.test_parameters.label }} <span class="text-danger">*</span></label>
+                {{ form.test_parameters }}
+                <div class="form-text small">{{ form.test_parameters.help_text }}</div>
+                {% if form.test_parameters.errors %}<div class="text-danger small mt-1">{{ form.test_parameters.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="col-md-12">
+                <label class="form-label small fw-semibold">{{ form.observed_readings.label }} <span class="text-danger">*</span></label>
+                {{ form.observed_readings }}
+                <div class="form-text small">{{ form.observed_readings.help_text }}</div>
+                {% if form.observed_readings.errors %}<div class="text-danger small mt-1">{{ form.observed_readings.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+
+            <!-- SECTION 4: Remarks -->
+            <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.78rem; letter-spacing: 0.05em;">
+              4. Inspector Findings &amp; Official Remarks
+            </h2>
+            <div class="row g-3 mb-4">
+              <div class="col-md-12">
+                <label class="form-label small fw-semibold">{{ form.remarks.label }} <span class="text-danger">*</span></label>
+                {{ form.remarks }}
+                <div class="form-text small">{{ form.remarks.help_text }}</div>
+                {% if form.remarks.errors %}<div class="text-danger small mt-1">{{ form.remarks.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+
+            <!-- SECTION 5: Attachments -->
+            <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.78rem; letter-spacing: 0.05em;">
+              5. Supporting Attachments
+            </h2>
+            <div class="row g-3 mb-4">
+              <div class="col-md-8">
+                <label class="form-label small fw-semibold">{{ form.supporting_document.label }}</label>
+                {{ form.supporting_document }}
+                <div class="form-text small">Optional: Upload calibration sheet, field test report, or seal photograph.</div>
+                {% if form.supporting_document.errors %}<div class="text-danger small mt-1">{{ form.supporting_document.errors|join:", " }}</div>{% endif %}
+              </div>
+            </div>
+
+            <!-- SECTION 6: Final Result -->
+            <h2 class="h6 fw-bold text-uppercase text-secondary border-bottom pb-2 mb-3" style="font-size: 0.78rem; letter-spacing: 0.05em;">
+              6. Final Inspection Determination
+            </h2>
+            <div class="p-3 bg-light border rounded mb-4">
+              <div class="row align-items-center g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold">{{ form.result.label }} <span class="text-danger">*</span></label>
+                  {{ form.result }}
+                  {% if form.result.errors %}<div class="text-danger small mt-1">{{ form.result.errors|join:", " }}</div>{% endif %}
+                </div>
+                <div class="col-md-6 small text-muted">
+                  <i class="bi bi-lock-fill text-secondary me-1"></i>
+                  <strong>Statutory Lock Notice:</strong> Once submitted as <code>PASS</code> or <code>FAIL</code>, this inspection record is locked and cannot be edited unless unlocked by an Administrator. Selecting <code>PASS</code> automatically generates the Digital Certificate.
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <a href="{% url 'verification:detail' application.pk %}" class="btn btn-outline-secondary btn-sm">
+                Cancel &amp; Return to Application
+              </a>
+              <button type="submit" class="btn btn-gov-primary px-4">
+                <i class="bi bi-shield-check me-1"></i>Submit &amp; Lock Official Inspection
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

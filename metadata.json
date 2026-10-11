@@ -1,0 +1,6 @@
+{
+  "name": "Legal Metrology Verification System",
+  "description": "Online Verification System for Weighing and Measuring Instruments under Legal Metrology regulations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Official Notices — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <div>
+            <h1 class="gov-card-title">Official Regulatory Notices &amp; Alerts</h1>
+            <p class="small text-muted mb-0">Statutory communications, inspection dates, and re-verification reminders.</p>
+          </div>
+        </div>
+
+        <div class="list-group list-group-flush">
+          {% for notif in notifications %}
+            <div class="list-group-item py-3 px-0 border-bottom {% if not notif.is_read %}bg-light bg-opacity-50{% endif %}">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge {% if notif.notification_type == 'EXPIRY' %}bg-danger{% elif notif.notification_type == 'INSPECTION' %}bg-primary{% else %}bg-secondary{% endif %}">
+                      {{ notif.get_notification_type_display }}
+                    </span>
+                    <h6 class="mb-0 fw-bold text-dark">{{ notif.title }}</h6>
+                  </div>
+                  <p class="small text-muted mb-1">{{ notif.message }}</p>
+                  <div class="text-muted" style="font-size: 0.75rem;">
+                    Received: {{ notif.created_at|date:"d M Y, H:i" }}
+                  </div>
+                </div>
+                {% if not notif.is_read %}
+                  <a href="{% url 'notifications:mark_read' notif.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                    Mark Read
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-center py-5 text-muted small">
+              <i class="bi bi-bell-slash fs-2 d-block text-secondary opacity-50 mb-2"></i>
+              No unread regulatory notifications or alerts at this time.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

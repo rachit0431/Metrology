@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Verification Certificates — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Verification Certificates</li>
+          </ol>
+        </nav>
+        <a href="{% url 'public_verify' %}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-qr-code-scan me-1"></i>Public Verification Portal
+        </a>
+      </div>
+
+      <div class="gov-card mb-4">
+        <div class="gov-card-body py-3">
+          <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1">Search Certificates</label>
+              <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Certificate No., Instrument ID, Serial No., or Name...">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted mb-1">Status</label>
+              <select name="status" class="form-select form-select-sm">
+                <option value="">All Statuses</option>
+                <option value="VALID" {% if status_filter == 'VALID' %}selected{% endif %}>Valid</option>
+                <option value="EXPIRED" {% if status_filter == 'EXPIRED' %}selected{% endif %}>Expired</option>
+                <option value="REVOKED" {% if status_filter == 'REVOKED' %}selected{% endif %}>Revoked</option>
+              </select>
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+              <button type="submit" class="btn btn-gov-primary btn-sm w-100">Filter</button>
+              <a href="{% url 'certificates:list' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <div>
+            <h1 class="gov-card-title">Digital Certificates of Verification</h1>
+            <p class="small text-muted mb-0">Total Certificates Found: <strong class="tabular-numbers">{{ total_count }}</strong></p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-gov align-middle">
+            <thead>
+              <tr>
+                <th>Certificate No.</th>
+                <th>Instrument</th>
+                <th>Owner</th>
+                <th>Certifying Authority</th>
+                <th>Issue Date</th>
+                <th>Valid Until</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cert in certificates %}
+                <tr>
+                  <td class="fw-bold tabular-numbers text-primary">{{ cert.certificate_number }}</td>
+                  <td>
+                    <div class="fw-semibold">{{ cert.instrument.instrument_name }}</div>
+                    <div class="small text-muted tabular-numbers">{{ cert.instrument.instrument_id }} · SN: {{ cert.instrument.serial_number }}</div>
+                  </td>
+                  <td class="small">{{ cert.instrument.owner.display_name }}</td>
+                  <td class="small">{{ cert.authorized_verifier_display }}</td>
+                  <td class="tabular-numbers small">{{ cert.issue_date|date:"d M Y" }}</td>
+                  <td class="tabular-numbers small fw-semibold">{{ cert.valid_until|date:"d M Y" }}</td>
+                  <td>
+                    {% if cert.effective_status == 'VALID' %}
+                      <span class="status-pill status-verified"><span class="status-dot"></span>VALID</span>
+                    {% elif cert.effective_status == 'REVOKED' %}
+                      <span class="status-pill status-expired"><span class="status-dot"></span>REVOKED</span>
+                    {% else %}
+                      <span class="status-pill status-pending"><span class="status-dot"></span>EXPIRED</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1">
+                      <a href="{% url 'certificates:detail' cert.certificate_number %}" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                        Certificate
+                      </a>
+                      <a href="{% url 'public_verify_token' cert.verification_token %}" target="_blank" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                        QR Verify
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center py-5 text-muted small">
+                    <i class="bi bi-patch-check fs-2 d-block text-secondary opacity-50 mb-2"></i>
+                    No digital certificates found matching your criteria.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

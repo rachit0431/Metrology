@@ -1,0 +1,57 @@
+<div class="col-lg-3 col-xl-2 d-none d-lg-block">
+  <div class="gov-card p-3 mb-3">
+    <!-- User Badge -->
+    <div class="text-center pb-3 border-bottom mb-3">
+      <div class="avatar-circle mx-auto mb-2 d-flex align-items-center justify-content-center bg-light text-primary fw-bold fs-4 rounded-circle" style="width: 54px; height: 54px; border: 2px solid #e2e8f0;">
+        {{ user.username|make_list|first|upper }}
+      </div>
+      <div class="fw-bold text-dark small text-truncate">{{ user.get_full_name|default:user.username }}</div>
+      <div class="mt-1">
+        <span class="role-badge-header {% if user.role == 'ADMIN' %}role-badge-admin{% elif user.role == 'LMO' %}role-badge-lmo{% elif user.role == 'GATC' %}role-badge-gatc{% else %}role-badge-owner{% endif %}">
+          {{ user.get_role_display }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Navigation List -->
+    <ul class="nav nav-pills flex-column gap-1">
+      <li class="nav-item">
+        <a class="nav-link text-dark py-2 px-3 rounded-2 fw-medium {% if request.resolver_match.app_name == 'dashboard' %}bg-light text-primary fw-bold{% endif %}" href="{% url 'dashboard:index' %}">
+          <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard Home
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark py-2 px-3 rounded-2 fw-medium {% if request.resolver_match.app_name == 'instruments' %}bg-light text-primary fw-bold{% endif %}" href="{% url 'instruments:list' %}">
+          <i class="bi bi-hdd-network me-2 text-secondary"></i>Instruments
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark py-2 px-3 rounded-2 fw-medium {% if request.resolver_match.app_name == 'verification' %}bg-light text-primary fw-bold{% endif %}" href="{% url 'verification:list' %}">
+          <i class="bi bi-clipboard-data me-2 text-secondary"></i>Applications
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark py-2 px-3 rounded-2 fw-medium {% if request.resolver_match.app_name == 'certificates' %}bg-light text-primary fw-bold{% endif %}" href="{% url 'certificates:list' %}">
+          <i class="bi bi-patch-check me-2 text-secondary"></i>Certificates
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark py-2 px-3 rounded-2 fw-medium {% if request.resolver_match.app_name == 'notifications' %}bg-light text-primary fw-bold{% endif %}" href="{% url 'notifications:list' %}">
+          <i class="bi bi-bell me-2 text-secondary"></i>Notifications
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark py-2 px-3 rounded-2 fw-medium" href="{% url 'accounts:profile' %}">
+          <i class="bi bi-person-lines-fill me-2 text-secondary"></i>Official Profile
+        </a>
+      </li>
+      {% if user.is_superuser or user.role == 'ADMIN' %}
+      <li class="nav-item mt-2 pt-2 border-top">
+        <a class="nav-link text-primary py-2 px-3 rounded-2 fw-semibold" href="/admin/" target="_blank">
+          <i class="bi bi-shield-lock-fill me-2"></i>Django Admin
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+</div>

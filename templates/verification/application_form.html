@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Verification Application — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'verification:list' %}" class="text-decoration-none">Applications</a></li>
+          <li class="breadcrumb-item active" aria-current="page">New Verification Request</li>
+        </ol>
+      </nav>
+
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h1 class="h4 fw-bold text-dark mb-1">Submit Verification / Re-Verification Request</h1>
+          <p class="small text-muted mb-0">
+            File an application for initial verification or periodic re-verification of a registered instrument.
+          </p>
+        </div>
+      </div>
+
+      <div class="gov-card p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">{{ form.instrument.label }} <span class="text-danger">*</span></label>
+              {{ form.instrument }}
+              {% if form.instrument.errors %}<div class="text-danger small mt-1">{{ form.instrument.errors|striptags }}</div>{% endif %}
+              <div class="form-text small">
+                Don't see your instrument? <a href="{% url 'instruments:add' %}">Register a new instrument first</a>.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">{{ form.application_type.label }} <span class="text-danger">*</span></label>
+              {{ form.application_type }}
+              {% if form.application_type.errors %}<div class="text-danger small mt-1">{{ form.application_type.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.preferred_date.label }}</label>
+              {{ form.preferred_date }}
+              <div class="form-text small">Requested date for field visit or lab test</div>
+              {% if form.preferred_date.errors %}<div class="text-danger small mt-1">{{ form.preferred_date.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">{{ form.location.label }} <span class="text-danger">*</span></label>
+              {{ form.location }}
+              {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">{{ form.remarks.label }}</label>
+              {{ form.remarks }}
+              {% if form.remarks.errors %}<div class="text-danger small mt-1">{{ form.remarks.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.submit_action.label }} <span class="text-danger">*</span></label>
+              {{ form.submit_action }}
+              <div class="form-text small">
+                Submitting immediately routes your request to Legal Metrology Administration.
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{% url 'verification:list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+            <button type="submit" class="btn btn-gov-primary px-4">
+              <i class="bi bi-send-check me-1"></i>Save / Submit Application
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

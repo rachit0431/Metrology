@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Owner Dashboard — Legal Metrology Online Verification{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Welcome Header -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+          <h1 class="h4 fw-bold text-dark mb-1">
+            {% if profile %}{{ profile.business_name }}{% else %}{{ user.display_name }}{% endif %}
+          </h1>
+          <div class="small text-muted">
+            <span>Trading License: <strong class="tabular-numbers">{{ profile.trade_license_number|default:"Pending" }}</strong></span>
+            <span class="mx-1">·</span>
+            <span>District: <strong>{{ profile.district|default:"Not Set" }}</strong>, {{ profile.state|default:"India" }}</span>
+          </div>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+          <a href="{% url 'instruments:add' %}" class="btn btn-gov-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Add Instrument
+          </a>
+          <a href="{% url 'verification:create' %}" class="btn btn-gov-secondary btn-sm">
+            <i class="bi bi-file-earmark-check me-1"></i>Submit Verification Request
+          </a>
+        </div>
+      </div>
+
+      <!-- 5 Real Database Metric Cards (Part 2 Requirement) -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl">
+          <div class="metric-card h-100">
+            <div class="metric-label">Total Instruments</div>
+            <div class="metric-value tabular-numbers">{{ total_instruments }}</div>
+            <div class="metric-sub">Registered equipment</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="metric-card h-100">
+            <div class="metric-label">Pending Verification</div>
+            <div class="metric-value tabular-numbers" style="color: #d97706;">{{ pending_verification }}</div>
+            <div class="metric-sub">Under review / inspection</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="metric-card h-100">
+            <div class="metric-label">Verified</div>
+            <div class="metric-value tabular-numbers" style="color: #059669;">{{ verified_instruments }}</div>
+            <div class="metric-sub">Legally compliant</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-6 col-xl">
+          <div class="metric-card h-100">
+            <div class="metric-label">Failed</div>
+            <div class="metric-value tabular-numbers" style="color: #dc2626;">{{ failed_instruments }}</div>
+            <div class="metric-sub">Requires recalibration</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl">
+          <div class="metric-card h-100">
+            <div class="metric-label">Expiring Soon</div>
+            <div class="metric-value tabular-numbers" style="color: #b91c1c;">{{ expiring_soon }}</div>
+            <div class="metric-sub">Due within 30 days</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Instruments Table -->
+      <div class="gov-card mb-4">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title">Registered Weighing &amp; Measuring Equipment</h2>
+          <a href="{% url 'instruments:list' %}" class="small text-decoration-none">View All Instruments &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Registration ID</th>
+                <th>Instrument Name</th>
+                <th>Type &amp; Capacity</th>
+                <th>Serial Number</th>
+                <th>Status</th>
+                <th>Next Verification</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inst in recent_instruments %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">
+                    <a href="{% url 'instruments:detail' inst.pk %}" class="text-decoration-none">{{ inst.instrument_id }}</a>
+                  </td>
+                  <td class="fw-semibold text-dark">{{ inst.instrument_name }}</td>
+                  <td class="small">{{ inst.get_instrument_type_display }} ({{ inst.capacity }})</td>
+                  <td class="tabular-numbers">{{ inst.serial_number }}</td>
+                  <td>
+                    <span class="status-pill {% if inst.status == 'VERIFIED' %}status-verified{% elif inst.status == 'FAILED' or inst.status == 'EXPIRED' or inst.status == 'SUSPENDED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ inst.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="tabular-numbers small">{{ inst.next_verification_date|date:"d M Y"|default:"Not Verified" }}</td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1">
+                      <a href="{% url 'instruments:detail' inst.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                        Details
+                      </a>
+                      {% if inst.can_owner_edit %}
+                        <a href="{% url 'instruments:edit' inst.pk %}" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                          Edit
+                        </a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted small">
+                    <i class="bi bi-inbox fs-3 d-block text-secondary opacity-50 mb-2"></i>
+                    No instruments registered yet. <a href="{% url 'instruments:add' %}">Register your first instrument</a>.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Verification Applications Table -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title">Recent Verification Applications</h2>
+          <a href="{% url 'verification:list' %}" class="small text-decoration-none">View All Applications &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Application No.</th>
+                <th>Instrument</th>
+                <th>Application Type</th>
+                <th>Scheduled Date</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in recent_applications %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">
+                    <a href="{% url 'verification:detail' app.pk %}" class="text-decoration-none">{{ app.application_number }}</a>
+                  </td>
+                  <td>{{ app.instrument.instrument_name }}</td>
+                  <td class="small">{{ app.get_application_type_display }}</td>
+                  <td class="tabular-numbers small">{{ app.scheduled_date|date:"d M Y"|default:"Unscheduled" }}</td>
+                  <td>
+                    <span class="status-pill {% if app.status == 'PASSED' or app.status == 'CERTIFICATE_ISSUED' %}status-verified{% elif app.status == 'FAILED' or app.status == 'REJECTED' or app.status == 'CANCELLED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ app.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="tabular-numbers small">{{ app.created_at|date:"d M Y" }}</td>
+                  <td class="text-end">
+                    <a href="{% url 'verification:detail' app.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted small">
+                    <i class="bi bi-clipboard fs-3 d-block text-secondary opacity-50 mb-2"></i>
+                    No verification applications filed yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Instruments Registry — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Instruments Registry</li>
+        </ol>
+      </nav>
+
+      <!-- Header -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+          <h1 class="h4 fw-bold text-dark mb-1">Weighing &amp; Measuring Instruments Registry</h1>
+          <p class="small text-muted mb-0">
+            Showing <strong class="tabular-numbers">{{ total_count }}</strong> registered instrument(s)
+          </p>
+        </div>
+        {% if user.is_superuser or user.role == 'INSTRUMENT_OWNER' or user.role == 'ADMIN' %}
+        <div class="mt-3 mt-md-0 d-flex gap-2">
+          <a href="{% url 'instruments:add' %}" class="btn btn-gov-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Register New Instrument
+          </a>
+          <a href="{% url 'verification:create' %}" class="btn btn-gov-secondary btn-sm">
+            <i class="bi bi-file-earmark-check me-1"></i>New Verification Request
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Search & Filter Bar -->
+      <div class="gov-card p-3 mb-4">
+        <form method="get" class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Search Registry</label>
+            <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="ID, Name, Serial, Model...">
+          </div>
+          <div class="col-sm-6 col-md-2">
+            <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+            <select name="status" class="form-select form-select-sm">
+              <option value="">All Statuses</option>
+              {% for code, label in status_choices %}
+                <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Instrument Type</label>
+            <select name="instrument_type" class="form-select form-select-sm">
+              <option value="">All Types</option>
+              {% for code, label in type_choices %}
+                <option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-2">
+            <label class="form-label small fw-semibold text-muted mb-1">District</label>
+            <input type="text" name="district" value="{{ district_filter }}" class="form-control form-control-sm" placeholder="e.g. Pune">
+          </div>
+          <div class="col-sm-6 col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-gov-primary btn-sm w-100">
+              <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+            {% if q or status_filter or type_filter or category_filter or district_filter %}
+              <a href="{% url 'instruments:list' %}" class="btn btn-outline-secondary btn-sm" title="Reset Filters">
+                <i class="bi bi-x-lg"></i>
+              </a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+
+      <!-- Instruments Table -->
+      <div class="gov-card">
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Registration ID</th>
+                <th>Instrument &amp; Type</th>
+                <th>Serial / Model</th>
+                <th>Location &amp; District</th>
+                {% if user.is_superuser or user.role != 'INSTRUMENT_OWNER' %}
+                  <th>Owner</th>
+                {% endif %}
+                <th>Current Status</th>
+                <th>Next Verification</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inst in instruments %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">
+                    <a href="{% url 'instruments:detail' inst.pk %}" class="text-decoration-none">
+                      {{ inst.instrument_id }}
+                    </a>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ inst.instrument_name }}</div>
+                    <div class="small text-muted">{{ inst.get_instrument_type_display }} · {{ inst.capacity }}</div>
+                  </td>
+                  <td>
+                    <div class="tabular-numbers fw-medium">{{ inst.serial_number }}</div>
+                    <div class="small text-muted">{{ inst.manufacturer }} ({{ inst.model_number }})</div>
+                  </td>
+                  <td>
+                    <div class="small text-dark">{{ inst.location }}</div>
+                    <div class="small text-muted">{{ inst.district }}, {{ inst.state }}</div>
+                  </td>
+                  {% if user.is_superuser or user.role != 'INSTRUMENT_OWNER' %}
+                    <td class="small">{{ inst.owner.display_name }}</td>
+                  {% endif %}
+                  <td>
+                    <span class="status-pill {% if inst.status == 'VERIFIED' %}status-verified{% elif inst.status == 'FAILED' or inst.status == 'EXPIRED' or inst.status == 'SUSPENDED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ inst.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="tabular-numbers small">
+                    {% if inst.next_verification_date %}
+                      {{ inst.next_verification_date|date:"d M Y" }}
+                      {% if inst.is_expiring_soon %}
+                        <span class="d-block text-danger fw-semibold" style="font-size: 0.7rem;">Expiring Soon</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted">Not Verified</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1">
+                      <a href="{% url 'instruments:detail' inst.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                        View
+                      </a>
+                      {% if user.is_superuser or user.role == 'ADMIN' or inst.owner_id == user.id and inst.can_owner_edit %}
+                        <a href="{% url 'instruments:edit' inst.pk %}" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                          Edit
+                        </a>
+                      {% endif %}
+                      {% if user.role == 'INSTRUMENT_OWNER' and inst.owner_id == user.id %}
+                        <a href="{% url 'verification:create_for_instrument' inst.pk %}" class="btn btn-gov-primary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                          Verify
+                        </a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center py-5 text-muted small">
+                    <i class="bi bi-inbox fs-2 d-block text-secondary opacity-50 mb-2"></i>
+                    No instruments match the current filter criteria.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

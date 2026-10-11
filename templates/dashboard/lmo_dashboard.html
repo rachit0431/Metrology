@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}LMO Officer Portal — Legal Metrology Online Verification{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Officer Header -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="role-badge-header role-badge-lmo">Legal Metrology Officer</span>
+            <span class="text-muted small">Badge ID: <strong class="tabular-numbers">{{ profile.officer_id|default:"LMO-IN-001" }}</strong></span>
+          </div>
+          <h1 class="h4 fw-bold text-dark mt-1 mb-0">{{ user.get_full_name|default:user.username }}</h1>
+          <div class="small text-muted mt-1">
+            <span>Jurisdiction: <strong>{{ profile.jurisdiction_circle|default:"General Circle" }}</strong></span>
+            <span class="mx-1">·</span>
+            <span>District: <strong>{{ profile.jurisdiction_district|default:"All Districts" }}</strong>, {{ profile.jurisdiction_state|default:"State Division" }}</span>
+          </div>
+        </div>
+        <div class="mt-3 mt-md-0">
+          <a href="{% url 'verification:list' %}" class="btn btn-gov-primary btn-sm">
+            <i class="bi bi-list-check me-1"></i>Official Inspection Queue
+          </a>
+        </div>
+      </div>
+
+      <!-- 3 Core LMO Metrics (Real DB counts) -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="metric-card">
+            <div class="metric-label">Assigned Applications</div>
+            <div class="metric-value tabular-numbers">{{ assigned_applications }}</div>
+            <div class="metric-sub">Applications assigned to you</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="metric-card">
+            <div class="metric-label">Pending Inspections</div>
+            <div class="metric-value tabular-numbers" style="color: #d97706;">{{ pending_inspections }}</div>
+            <div class="metric-sub">Assigned / Scheduled / Inspection Pending</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="metric-card">
+            <div class="metric-label">Completed Inspections</div>
+            <div class="metric-value tabular-numbers" style="color: #059669;">{{ completed_inspections }}</div>
+            <div class="metric-sub">Passed or Failed outcomes recorded</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assigned Applications Table (Part 2 LMO Foundation) -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <h2 class="gov-card-title">Assigned Field Verification &amp; Inspection Queue</h2>
+          <a href="{% url 'verification:list' %}" class="small text-decoration-none">Full Docket &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-gov align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Application Number</th>
+                <th>Instrument</th>
+                <th>Owner</th>
+                <th>Scheduled Date</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task in recent_tasks %}
+                <tr>
+                  <td class="fw-semibold tabular-numbers text-primary">
+                    <a href="{% url 'verification:detail' task.pk %}" class="text-decoration-none">{{ task.application_number }}</a>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ task.instrument.instrument_name }}</div>
+                    <div class="small text-muted tabular-numbers">{{ task.instrument.instrument_id }} · S/N: {{ task.instrument.serial_number }}</div>
+                  </td>
+                  <td class="small">{{ task.applicant.display_name }}</td>
+                  <td class="tabular-numbers small">{{ task.scheduled_date|date:"d M Y"|default:"Unscheduled" }}</td>
+                  <td class="small text-truncate" style="max-width: 180px;" title="{{ task.location }}">{{ task.location }}</td>
+                  <td>
+                    <span class="status-pill {% if task.status == 'PASSED' or task.status == 'CERTIFICATE_ISSUED' %}status-verified{% elif task.status == 'FAILED' or task.status == 'REJECTED' %}status-expired{% else %}status-pending{% endif %}">
+                      <span class="status-dot"></span>{{ task.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1">
+                      {% if task.status in 'ASSIGNED,SCHEDULED,INSPECTION_PENDING' %}
+                        <a href="{% url 'verification:inspect' task.pk %}" class="btn btn-gov-primary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                          Digital Inspection
+                        </a>
+                      {% endif %}
+                      <a href="{% url 'verification:detail' task.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                        Details
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted small">
+                    <i class="bi bi-check2-circle fs-3 d-block text-success opacity-75 mb-2"></i>
+                    No verification applications currently assigned to your officer account.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

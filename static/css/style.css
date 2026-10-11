@@ -1,0 +1,405 @@
+/* ==============================================================================
+   Legal Metrology Online Verification System
+   Theme: Classic Government Enterprise + Modern Premium
+   ============================================================================== */
+
+:root {
+  --gov-navy-900: #0a192f;
+  --gov-navy-800: #102a43;
+  --gov-navy-700: #1a365d;
+  --gov-navy-600: #2b4c7e;
+  --gov-teal-700: #0f766e;
+  --gov-teal-600: #13795b;
+  --gov-amber: #d97706;
+  --gov-red: #b91c1c;
+  --gov-bg: #f8fafc;
+  --gov-card-bg: #ffffff;
+  --gov-border: #e2e8f0;
+  --gov-text-main: #1e293b;
+  --gov-text-muted: #64748b;
+  --gov-font: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --gov-mono: "JetBrains Mono", "IBM Plex Mono", Consolas, monospace;
+}
+
+body {
+  font-family: var(--gov-font);
+  background-color: var(--gov-bg);
+  color: var(--gov-text-main);
+  line-height: 1.55;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Subtle Tricolor Ribbon for National Legal Metrology Identity */
+.tricolor-stripe {
+  height: 4px;
+  background: linear-gradient(90deg, #ff9933 0%, #ff9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #138808 66.6%, #138808 100%);
+  width: 100%;
+}
+
+/* Top Statutory Bar */
+.gov-topbar {
+  background-color: #0d1b2a;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gov-topbar a {
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.gov-topbar a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* Main Navigation Bar */
+.gov-navbar {
+  background-color: var(--gov-navy-800);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 0;
+}
+
+.gov-brand-title {
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gov-brand-subtitle {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 400;
+  display: block;
+  letter-spacing: 0.02em;
+}
+
+.gov-nav-link {
+  color: #cbd5e1 !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem !important;
+  transition: color 0.15s ease-in-out;
+}
+
+.gov-nav-link:hover,
+.gov-nav-link.active {
+  color: #ffffff !important;
+  border-bottom: 2px solid #38bdf8;
+}
+
+/* User Role Indicator in Header */
+.role-badge-header {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.role-badge-owner {
+  background-color: #0369a1;
+  color: #ffffff;
+}
+
+.role-badge-lmo {
+  background-color: #0f766e;
+  color: #ffffff;
+}
+
+.role-badge-gatc {
+  background-color: #6d28d9;
+  color: #ffffff;
+}
+
+.role-badge-admin {
+  background-color: #1e3a8a;
+  color: #ffffff;
+}
+
+/* Structural Cards */
+.gov-card {
+  background-color: var(--gov-card-bg);
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gov-card-header {
+  border-bottom: 1px solid var(--gov-border);
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gov-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--gov-navy-900);
+  margin: 0;
+}
+
+/* Stat Metric Units */
+.metric-card {
+  background-color: #ffffff;
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  position: relative;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.metric-card:hover {
+  border-color: #cbd5e1;
+}
+
+.metric-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gov-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--gov-font);
+  font-variant-numeric: tabular-nums;
+  color: var(--gov-navy-900);
+  line-height: 1.1;
+}
+
+.metric-sub {
+  font-size: 0.78rem;
+  color: var(--gov-text-muted);
+  margin-top: 0.35rem;
+}
+
+/* Buttons */
+.btn-gov-primary {
+  background-color: var(--gov-navy-800);
+  border-color: var(--gov-navy-800);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.5rem 1.15rem;
+  border-radius: 4px;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-gov-primary:hover {
+  background-color: var(--gov-navy-900);
+  border-color: var(--gov-navy-900);
+  color: #ffffff;
+}
+
+.btn-gov-secondary {
+  background-color: #ffffff;
+  border: 1px solid var(--gov-border);
+  color: var(--gov-text-main);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.btn-gov-secondary:hover {
+  background-color: #f1f5f9;
+  color: var(--gov-navy-900);
+}
+
+/* Data Tables */
+.table-gov {
+  margin-bottom: 0;
+  font-size: 0.875rem;
+}
+
+.table-gov thead th {
+  background-color: #f8fafc;
+  color: var(--gov-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--gov-border);
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+}
+
+.table-gov tbody td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--gov-text-main);
+}
+
+.table-gov tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.tabular-numbers {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--gov-mono);
+}
+
+/* Form Controls */
+.form-control, .form-select {
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--gov-text-main);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--gov-navy-600);
+  box-shadow: 0 0 0 3px rgba(16, 42, 67, 0.12);
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+/* Status Indicators (Unboxed Text with Dot) */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.status-verified {
+  color: #047857;
+}
+.status-verified .status-dot {
+  background-color: #059669;
+}
+
+.status-pending {
+  color: #b45309;
+}
+.status-pending .status-dot {
+  background-color: #d97706;
+}
+
+.status-expired {
+  color: #b91c1c;
+}
+.status-expired .status-dot {
+  background-color: #dc2626;
+}
+
+.status-neutral {
+  color: #475569;
+}
+.status-neutral .status-dot {
+  background-color: #94a3b8;
+}
+
+/* Official Footer */
+.gov-footer {
+  background-color: var(--gov-navy-900);
+  color: #94a3b8;
+  font-size: 0.82rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2.5rem 0 1.5rem;
+  margin-top: auto;
+}
+
+.gov-footer h6 {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.gov-footer a {
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.gov-footer a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* Hero Section */
+.hero-gov {
+  background: linear-gradient(180deg, #102a43 0%, #0a192f 100%);
+  color: #ffffff;
+  padding: 3.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-gov-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #38bdf8;
+  margin-bottom: 0.75rem;
+}
+
+.hero-gov-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #ffffff;
+  text-wrap: balance;
+}
+
+.hero-gov-sub {
+  font-size: 1.05rem;
+  color: #cbd5e1;
+  margin-top: 1rem;
+  max-width: 720px;
+  line-height: 1.6;
+}
+
+/* Section Header */
+.section-kicker {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gov-teal-700);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gov-navy-900);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.75rem;
+}

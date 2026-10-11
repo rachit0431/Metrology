@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Public Certificate Verification — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Lookup Box -->
+      <div class="gov-card mb-4">
+        <div class="gov-card-header">
+          <div>
+            <h1 class="gov-card-title"><i class="bi bi-qr-code-scan me-2 text-primary"></i>Public Certificate &amp; QR Verification Portal</h1>
+            <p class="small text-muted mb-0">
+              Verify any commercial weighing or measuring instrument using its Certificate Number (e.g. <code>LM-2026-000001</code>) or secure QR verification token. No login required.
+            </p>
+          </div>
+        </div>
+        <div class="gov-card-body">
+          <form method="get" action="{% url 'public_verify' %}" class="row g-2">
+            <div class="col-sm-9">
+              <input
+                type="text"
+                name="q"
+                value="{{ query }}"
+                class="form-control font-monospace"
+                placeholder="Enter Certificate Number (e.g. LM-2026-000001) or Verification Token..."
+                required
+              >
+            </div>
+            <div class="col-sm-3">
+              <button type="submit" class="btn btn-gov-primary w-100">
+                <i class="bi bi-search me-1"></i>Verify Now
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {% if rate_limited %}
+        <div class="gov-card border-danger">
+          <div class="gov-card-body text-center py-4">
+            <div class="fs-3 text-danger fw-bold mb-2">Rate Limit Exceeded</div>
+            <p class="small text-muted mb-0">
+              Too many verification requests from your network within a short window. Please wait a minute and try again.
+            </p>
+          </div>
+        </div>
+      {% elif searched %}
+        {% if certificate %}
+          <!-- Found Certificate Result Card -->
+          <div class="gov-card" style="border-top: 4px solid {% if certificate.effective_status == 'VALID' %}#059669{% else %}#dc2626{% endif %};">
+            <div class="gov-card-body p-4">
+              {% if certificate.effective_status == 'VALID' %}
+                <div class="d-flex align-items-center gap-3 pb-3 border-bottom mb-4">
+                  <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center" style="width: 46px; height: 46px; font-size: 1.4rem; font-weight: 700;">
+                    ✓
+                  </div>
+                  <div>
+                    <h2 class="h5 fw-bold text-success mb-0">✓ CERTIFICATE VERIFIED</h2>
+                    <div class="small text-muted">Authentic Digital Compliance Record — Valid for Commercial Use</div>
+                  </div>
+                </div>
+              {% elif certificate.effective_status == 'REVOKED' %}
+                <div class="d-flex align-items-center gap-3 pb-3 border-bottom mb-4">
+                  <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center" style="width: 46px; height: 46px; font-size: 1.4rem; font-weight: 700;">
+                    ✗
+                  </div>
+                  <div>
+                    <h2 class="h5 fw-bold text-danger mb-0">✗ CERTIFICATE REVOKED</h2>
+                    <div class="small text-danger">This certificate has been revoked by the Legal Metrology Administration.</div>
+                  </div>
+                </div>
+              {% else %}
+                <div class="d-flex align-items-center gap-3 pb-3 border-bottom mb-4">
+                  <div class="rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center" style="width: 46px; height: 46px; font-size: 1.4rem; font-weight: 700;">
+                    !
+                  </div>
+                  <div>
+                    <h2 class="h5 fw-bold text-warning mb-0">CERTIFICATE EXPIRED</h2>
+                    <div class="small text-muted">This certificate is authentic, but its validity period has expired.</div>
+                  </div>
+                </div>
+              {% endif %}
+
+              <div class="row g-3 small">
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Certificate Number</div>
+                  <div class="fw-bold fs-6 text-primary tabular-numbers">{{ certificate.certificate_number }}</div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Status</div>
+                  <div>
+                    {% if certificate.effective_status == 'VALID' %}
+                      <span class="status-pill status-verified"><span class="status-dot"></span>VALID</span>
+                    {% elif certificate.effective_status == 'REVOKED' %}
+                      <span class="status-pill status-expired"><span class="status-dot"></span>REVOKED</span>
+                    {% else %}
+                      <span class="status-pill status-pending"><span class="status-dot"></span>EXPIRED</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Instrument ID</div>
+                  <div class="fw-semibold tabular-numbers">{{ certificate.instrument.instrument_id }}</div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Instrument Type</div>
+                  <div class="fw-semibold">{{ certificate.instrument.instrument_name }} ({{ certificate.instrument.get_instrument_type_display }})</div>
+                </div>
+
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Organization / Establishment</div>
+                  <div class="fw-semibold">{{ organization_name }} ({{ certificate.instrument.district }}, {{ certificate.instrument.state }})</div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Make / Model / Capacity</div>
+                  <div>{{ certificate.instrument.manufacturer }} {{ certificate.instrument.model_number }} · {{ certificate.instrument.capacity }}</div>
+                </div>
+
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Verification Date</div>
+                  <div class="tabular-numbers fw-semibold">{{ certificate.issue_date|date:"d-m-Y" }}</div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="text-muted text-uppercase" style="font-size: 0.7rem;">Valid Until</div>
+                  <div class="tabular-numbers fw-bold {% if certificate.effective_status == 'VALID' %}text-success{% else %}text-danger{% endif %}">
+                    {{ certificate.valid_until|date:"d-m-Y" }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-top small text-muted d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                  <span class="text-uppercase" style="font-size: 0.68rem;">Digital SHA-256 Digest:</span>
+                  <code class="small">{{ certificate.certificate_hash|slice:":24" }}...</code>
+                </div>
+                <div class="small text-muted">
+                  Personal contact details are withheld for privacy protection.
+                </div>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <!-- Invalid / Not Found Certificate -->
+          <div class="gov-card" style="border-top: 4px solid #dc2626;">
+            <div class="gov-card-body p-4 text-center">
+              <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; font-size: 1.5rem; font-weight: 700;">
+                ✗
+              </div>
+              <h2 class="h5 fw-bold text-danger mb-2">✗ Certificate could not be verified.</h2>
+              <p class="small text-muted mb-0">
+                No valid verification certificate matches <code>{{ query }}</code>. Please check the Certificate Number or QR Verification Token and try again.
+              </p>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

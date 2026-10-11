@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Official Profile — Legal Metrology Online Verification{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="avatar-circle d-flex align-items-center justify-content-center bg-primary text-white fw-bold fs-4 rounded-circle" style="width: 50px; height: 50px;">
+              {{ user.username|make_list|first|upper }}
+            </div>
+            <div>
+              <h1 class="gov-card-title fs-5 mb-1">{{ user.get_full_name|default:user.username }}</h1>
+              <div class="small text-muted d-flex align-items-center gap-2">
+                <span>Username: <strong>{{ user.username }}</strong></span>
+                <span>·</span>
+                <span class="role-badge-header {% if user.role == 'ADMIN' %}role-badge-admin{% elif user.role == 'LMO' %}role-badge-lmo{% elif user.role == 'GATC' %}role-badge-gatc{% else %}role-badge-owner{% endif %}">
+                  {{ user.get_role_display }}
+                </span>
+                <span>·</span>
+                <span>Joined: {{ user.date_joined|date:"d M Y" }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if user.role == 'INSTRUMENT_OWNER' and profile %}
+          <!-- Instrument Owner Profile -->
+          <h5 class="fw-bold text-dark fs-6 mb-3 text-uppercase text-primary">
+            <i class="bi bi-building me-1"></i>Enterprise &amp; Trade Details
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Business / Firm Name</div>
+                <div class="fw-bold text-dark">{{ profile.business_name }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Trade License Number</div>
+                <div class="fw-bold text-dark tabular-numbers">{{ profile.trade_license_number }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">GSTIN</div>
+                <div class="fw-bold text-dark">{{ profile.gstin|default:"Not Provided" }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Contact Person &amp; Phone</div>
+                <div class="fw-bold text-dark">{{ profile.contact_person }} ({{ profile.phone }})</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="metric-card">
+                <div class="metric-label">Premises Location</div>
+                <div class="fw-bold text-dark">{{ profile.address }}</div>
+                <div class="small text-muted mt-1">{{ profile.district }}, {{ profile.state }} — {{ profile.pincode }}</div>
+              </div>
+            </div>
+          </div>
+
+        {% elif user.role == 'LMO' and profile %}
+          <!-- Legal Metrology Officer Profile -->
+          <h5 class="fw-bold text-dark fs-6 mb-3 text-uppercase text-primary">
+            <i class="bi bi-shield-check me-1"></i>Officer Credentials &amp; Jurisdiction
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Official Officer ID</div>
+                <div class="fw-bold text-dark tabular-numbers">{{ profile.officer_id }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Official Designation</div>
+                <div class="fw-bold text-dark">{{ profile.designation }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Department</div>
+                <div class="fw-bold text-dark">{{ profile.department }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Official Email &amp; Phone</div>
+                <div class="fw-bold text-dark">{{ profile.official_email }} / {{ profile.office_phone }}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="metric-card">
+                <div class="metric-label">Assigned Jurisdiction Territory</div>
+                <div class="fw-bold text-dark">Circle: {{ profile.jurisdiction_circle }}</div>
+                <div class="small text-muted mt-1">District: {{ profile.jurisdiction_district }} · State: {{ profile.jurisdiction_state }}</div>
+              </div>
+            </div>
+          </div>
+
+        {% elif user.role == 'GATC' and profile %}
+          <!-- GATC Profile -->
+          <h5 class="fw-bold text-dark fs-6 mb-3 text-uppercase text-primary">
+            <i class="bi bi-gear-wide-connected me-1"></i>Laboratory Accreditation
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Laboratory Name</div>
+                <div class="fw-bold text-dark">{{ profile.centre_name }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Statutory Approval Reg. No.</div>
+                <div class="fw-bold text-dark tabular-numbers">{{ profile.approval_number }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Accreditation Details</div>
+                <div class="fw-bold text-dark">{{ profile.accreditation_details|default:"NABL Accredited / ISO 17025" }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-card">
+                <div class="metric-label">Authorization Status</div>
+                <div class="fw-bold text-success">{{ profile.get_status_display }}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="metric-card">
+                <div class="metric-label">Facility Address</div>
+                <div class="fw-bold text-dark">{{ profile.address }}</div>
+                <div class="small text-muted mt-1">{{ profile.district }}, {{ profile.state }} · Valid Until: {{ profile.valid_until|default:"Permanent / Active Audit" }}</div>
+              </div>
+            </div>
+          </div>
+
+        {% else %}
+          <!-- System Admin Profile -->
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-1"></i>You are logged in with Administrative privileges. Full system oversight is active.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

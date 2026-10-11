@@ -1,0 +1,12 @@
+{
+  "name": "metrology-verify",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bash start_django.sh",
+    "build": "python3 manage.py check",
+    "start": "bash start_django.sh",
+    "preview": "bash start_django.sh",
+    "lint": "python3 manage.py check"
+  }
+}

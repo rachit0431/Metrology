@@ -1,0 +1,117 @@
+{% load static %}
+<!-- Statutory Government Header Bar -->
+<div class="tricolor-stripe"></div>
+<header class="gov-topbar">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <span class="text-white-50"><i class="bi bi-shield-check me-1"></i>Official Digital Portal</span>
+      <span class="text-white-50 d-none d-md-inline">·</span>
+      <span class="d-none d-md-inline text-white-50">{{ MINISTRY_NAME }}</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="text-white-50 d-none d-sm-inline"><i class="bi bi-geo-alt me-1"></i>India Legal Metrology Division</span>
+      <a href="#main-content" class="text-white-50 text-decoration-none">Skip to Content</a>
+    </div>
+  </div>
+</header>
+
+<!-- Main Navigation Bar -->
+<nav class="navbar navbar-expand-lg gov-navbar" aria-label="Main Navigation">
+  <div class="container">
+    <!-- Zone 1: Brand Title -->
+    <a class="gov-brand-title" href="{% if user.is_authenticated %}{% url 'dashboard:index' %}{% else %}{% url 'accounts:landing' %}{% endif %}">
+      <div class="d-inline-flex align-items-center justify-content-center bg-white text-dark rounded-circle" style="width: 34px; height: 34px; font-weight: 800; font-size: 16px;">
+        ⚖️
+      </div>
+      <div>
+        <span>Legal Metrology</span>
+        <span class="gov-brand-subtitle">Online Verification &amp; Certification System</span>
+      </div>
+    </a>
+
+    <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse" data-bs-target="#govNav" aria-controls="govNav" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-3 text-white"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="govNav">
+      <!-- Zone 2: Navigation Links -->
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link gov-nav-link" href="{% url 'dashboard:index' %}">
+              <i class="bi bi-grid-1x2 me-1"></i>Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link gov-nav-link" href="{% url 'instruments:list' %}">
+              <i class="bi bi-speedometer2 me-1"></i>Instruments
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link gov-nav-link" href="{% url 'verification:list' %}">
+              <i class="bi bi-clipboard-check me-1"></i>Applications
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link gov-nav-link" href="{% url 'certificates:list' %}">
+              <i class="bi bi-award me-1"></i>Certificates
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link gov-nav-link" href="{% url 'notifications:list' %}">
+              <i class="bi bi-bell me-1"></i>Notices
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link gov-nav-link" href="{% url 'public_verify' %}">
+              <i class="bi bi-qr-code-scan me-1"></i>Verify QR
+            </a>
+          </li>
+          {% if user.is_superuser or user.role == 'ADMIN' %}
+            <li class="nav-item">
+              <a class="nav-link gov-nav-link" href="/admin/" target="_blank">
+                <i class="bi bi-gear-fill me-1"></i>Admin Console
+              </a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="nav-item"><a class="nav-link gov-nav-link" href="{% url 'accounts:landing' %}#overview">System Overview</a></li>
+          <li class="nav-item"><a class="nav-link gov-nav-link" href="{% url 'accounts:landing' %}#workflow">Verification Flow</a></li>
+          <li class="nav-item"><a class="nav-link gov-nav-link" href="{% url 'public_verify' %}"><i class="bi bi-qr-code-scan me-1"></i>Verify Certificate</a></li>
+          <li class="nav-item"><a class="nav-link gov-nav-link" href="{% url 'accounts:landing' %}#compliance">Compliance &amp; Act</a></li>
+        {% endif %}
+      </ul>
+
+      <!-- Zone 3: Actions -->
+      <div class="d-flex align-items-center gap-2">
+        {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2 py-1 px-2" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="role-badge-header {% if user.role == 'ADMIN' %}role-badge-admin{% elif user.role == 'LMO' %}role-badge-lmo{% elif user.role == 'GATC' %}role-badge-gatc{% else %}role-badge-owner{% endif %}">
+                {{ user.get_role_display }}
+              </span>
+              <span class="small fw-medium">{{ user.username }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userMenuButton">
+              <li><h6 class="dropdown-header text-muted">{{ user.get_full_name|default:user.username }}</h6></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>Official Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                  <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                </a>
+              </li>
+            </ul>
+          </div>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-sm px-3">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+          </a>
+          <a href="{% url 'accounts:register' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+            <i class="bi bi-person-plus me-1"></i>Register Owner
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>

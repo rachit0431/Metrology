@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Online Verification System for Weighing &amp; Measuring Instruments{% endblock %}
+
+{% block content %}
+<!-- Official Hero Section -->
+<section class="hero-gov">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <span class="hero-gov-badge">
+          <i class="bi bi-shield-lock-fill me-1"></i> Legal Metrology Act, 2009 &amp; General Rules, 2011
+        </span>
+        <h1 class="hero-gov-title">
+          Online Verification &amp; Certification System
+        </h1>
+        <p class="hero-gov-sub">
+          Digital lifecycle management for weighing and measuring instruments under Legal Metrology regulations.
+          Ensuring trade accuracy, consumer protection, and seamless statutory compliance across India.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg px-4 fs-6 fw-bold text-navy shadow-sm">
+            <i class="bi bi-person-plus-fill me-2"></i>Register as Instrument Owner
+          </a>
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg px-4 fs-6 fw-semibold">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In to Portal
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-4 mt-4 mt-lg-0 text-center">
+        <div class="p-4 rounded-3 text-start shadow-sm" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);">
+          <div class="text-uppercase small fw-bold text-info mb-2">Centralized Registry</div>
+          <div class="h5 text-white mb-2">Digital Compliance Hub</div>
+          <p class="small text-white-50 mb-3">
+            Unified single-window platform connecting Instrument Owners, Legal Metrology Officers (LMO), and Approved Testing Laboratories (GATC).
+          </p>
+          <div class="d-flex flex-column gap-2 small text-light">
+            <div><i class="bi bi-check2 text-success me-2"></i>Zero paper delays in stamping</div>
+            <div><i class="bi bi-check2 text-success me-2"></i>Cryptographic verification certificates</div>
+            <div><i class="bi bi-check2 text-success me-2"></i>Real-time field inspection tracking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5-Step Lifecycle Workflow Section -->
+<section id="workflow" class="py-5">
+  <div class="container">
+    <div class="text-center max-w-2xl mx-auto mb-5">
+      <div class="section-kicker">End-to-End Governance</div>
+      <h2 class="section-title">Statutory Verification Lifecycle</h2>
+      <p class="text-muted small">
+        Standardized process flow complying with statutory verification intervals under Central &amp; State Legal Metrology Rules.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Step 1 -->
+      <div class="col-md-6 col-lg">
+        <div class="gov-card h-100 p-3 text-start">
+          <div class="text-primary fw-bold fs-4 mb-2">01</div>
+          <h5 class="fw-bold text-dark fs-6 mb-2">Register</h5>
+          <p class="text-muted small mb-0">
+            Owners and traders register their business credentials, trade license, and upload instrument technical specs.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="col-md-6 col-lg">
+        <div class="gov-card h-100 p-3 text-start">
+          <div class="text-primary fw-bold fs-4 mb-2">02</div>
+          <h5 class="fw-bold text-dark fs-6 mb-2">Apply for Verification</h5>
+          <p class="text-muted small mb-0">
+            Submit applications for initial verification or periodic re-verification before validity expiration.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="col-md-6 col-lg">
+        <div class="gov-card h-100 p-3 text-start">
+          <div class="text-primary fw-bold fs-4 mb-2">03</div>
+          <h5 class="fw-bold text-dark fs-6 mb-2">Track Verification</h5>
+          <p class="text-muted small mb-0">
+            Live status updates as the application moves from LMO jurisdictional assignment to field test scheduling.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="col-md-6 col-lg">
+        <div class="gov-card h-100 p-3 text-start">
+          <div class="text-primary fw-bold fs-4 mb-2">04</div>
+          <h5 class="fw-bold text-dark fs-6 mb-2">Digital Certificate</h5>
+          <p class="text-muted small mb-0">
+            Upon successful calibration &amp; inspection approval, a tamper-proof digitally signed verification certificate is generated.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="col-md-6 col-lg">
+        <div class="gov-card h-100 p-3 text-start">
+          <div class="text-primary fw-bold fs-4 mb-2">05</div>
+          <h5 class="fw-bold text-dark fs-6 mb-2">QR Verification</h5>
+          <p class="text-muted small mb-0">
+            Stickers and certificates bear unique QR codes for instant offline/online authenticity validation by enforcement officers.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Statutory Stakeholder Roles Section -->
+<section id="roles" class="py-5 bg-white border-top border-bottom">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-kicker">Role-Based Access</div>
+      <h2 class="section-title">Stakeholder Portals &amp; Responsibilities</h2>
+      <p class="text-muted small">Strict backend authorization ensures secure role-segregated access.</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Instrument Owner -->
+      <div class="col-md-6 col-lg-3">
+        <div class="gov-card h-100 p-4 border-start border-4 border-primary">
+          <div class="fw-bold text-primary mb-1 small text-uppercase">Role: INSTRUMENT_OWNER</div>
+          <h5 class="fw-bold text-dark mb-2">Commercial Owners &amp; Traders</h5>
+          <p class="text-muted small mb-3">
+            Traders, manufacturers, petrol pump operators, and weighbridge owners managing measuring instruments.
+          </p>
+          <ul class="list-unstyled small text-secondary d-flex flex-column gap-1 mb-4">
+            <li>· Instrument inventory logs</li>
+            <li>· Verification application filing</li>
+            <li>· Expiry tracking &amp; renewal</li>
+            <li>· Download certificates</li>
+          </ul>
+          <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary btn-sm w-100">Register as Owner</a>
+        </div>
+      </div>
+
+      <!-- LMO -->
+      <div class="col-md-6 col-lg-3">
+        <div class="gov-card h-100 p-4 border-start border-4 border-teal" style="border-left-color: #0f766e !important;">
+          <div class="fw-bold text-teal mb-1 small text-uppercase" style="color: #0f766e;">Role: LMO</div>
+          <h5 class="fw-bold text-dark mb-2">Legal Metrology Officers</h5>
+          <p class="text-muted small mb-3">
+            Government inspectors empowered under the Act for jurisdictional field inspection, testing &amp; stamping.
+          </p>
+          <ul class="list-unstyled small text-secondary d-flex flex-column gap-1 mb-4">
+            <li>· District/Circle inspection queue</li>
+            <li>· On-site stamping records</li>
+            <li>· Non-compliance notices</li>
+            <li>· Issue certificates</li>
+          </ul>
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-sm w-100">Officer Sign In</a>
+        </div>
+      </div>
+
+      <!-- GATC -->
+      <div class="col-md-6 col-lg-3">
+        <div class="gov-card h-100 p-4 border-start border-4 border-purple" style="border-left-color: #6d28d9 !important;">
+          <div class="fw-bold text-purple mb-1 small text-uppercase" style="color: #6d28d9;">Role: GATC</div>
+          <h5 class="fw-bold text-dark mb-2">Approved Test Centres</h5>
+          <p class="text-muted small mb-3">
+            Government-recognized laboratories performing high-precision calibration and bench testing.
+          </p>
+          <ul class="list-unstyled small text-secondary d-flex flex-column gap-1 mb-4">
+            <li>· Statutory test requests</li>
+            <li>· Calibration bench logs</li>
+            <li>· Upload test test reports</li>
+            <li>· NABL standards compliance</li>
+          </ul>
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-sm w-100">Lab Sign In</a>
+        </div>
+      </div>
+
+      <!-- Administrator -->
+      <div class="col-md-6 col-lg-3">
+        <div class="gov-card h-100 p-4 border-start border-4 border-navy" style="border-left-color: #1e3a8a !important;">
+          <div class="fw-bold mb-1 small text-uppercase" style="color: #1e3a8a;">Role: ADMIN</div>
+          <h5 class="fw-bold text-dark mb-2">System Administrators</h5>
+          <p class="text-muted small mb-3">
+            Central ministry and state directorate oversight, user provisioning, security auditing, and national reporting.
+          </p>
+          <ul class="list-unstyled small text-secondary d-flex flex-column gap-1 mb-4">
+            <li>· Complete user management</li>
+            <li>· Officer jurisdiction routing</li>
+            <li>· Audit logs &amp; system health</li>
+            <li>· Heavily styled Django admin</li>
+          </ul>
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-sm w-100">Admin Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Compliance & Regulatory Notice -->
+<section id="compliance" class="py-5">
+  <div class="container">
+    <div class="gov-card bg-light border p-4">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h5 class="fw-bold text-navy mb-2">Statutory Mandate under Section 24 of Legal Metrology Act, 2009</h5>
+          <p class="small text-muted mb-0">
+            No person shall use any weight or measure in any transaction or for protection unless it has been verified or re-verified in accordance with the rules. Stamping and verification records maintained in this portal constitute prima facie legal evidence.
+          </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          <a href="{% url 'accounts:login' %}" class="btn btn-gov-primary">
+            Access National System <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

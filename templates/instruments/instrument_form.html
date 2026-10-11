@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Edit Instrument {{ instrument.instrument_id }}{% else %}Register New Instrument{% endif %} — Legal Metrology{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    {% include 'sidebar.html' %}
+
+    <div class="col-lg-9 col-xl-10">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'instruments:list' %}" class="text-decoration-none">Instruments</a></li>
+          <li class="breadcrumb-item active" aria-current="page">
+            {% if is_edit %}Edit {{ instrument.instrument_id }}{% else %}Register Instrument{% endif %}
+          </li>
+        </ol>
+      </nav>
+
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h1 class="h4 fw-bold text-dark mb-1">
+            {% if is_edit %}Edit Weighing / Measuring Instrument{% else %}Register Weighing / Measuring Instrument{% endif %}
+          </h1>
+          <p class="small text-muted mb-0">
+            {% if is_edit %}
+              Update technical specifications or location details prior to official verification lock.
+            {% else %}
+              Submit statutory technical and installation particulars to obtain a unique Instrument Registration ID.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      <div class="gov-card p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <!-- Section 1: Classification -->
+          <h2 class="h6 fw-bold text-uppercase text-muted border-bottom pb-2 mb-3">
+            1. Instrument Identity &amp; Classification
+          </h2>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">{{ form.instrument_name.label }} <span class="text-danger">*</span></label>
+              {{ form.instrument_name }}
+              {% if form.instrument_name.help_text %}<div class="form-text small">{{ form.instrument_name.help_text }}</div>{% endif %}
+              {% if form.instrument_name.errors %}<div class="text-danger small mt-1">{{ form.instrument_name.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">{{ form.instrument_type.label }} <span class="text-danger">*</span></label>
+              {{ form.instrument_type }}
+              {% if form.instrument_type.errors %}<div class="text-danger small mt-1">{{ form.instrument_type.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">{{ form.category.label }} <span class="text-danger">*</span></label>
+              {{ form.category }}
+              {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors|striptags }}</div>{% endif %}
+            </div>
+          </div>
+
+          <!-- Section 2: Technical Specifications -->
+          <h2 class="h6 fw-bold text-uppercase text-muted border-bottom pb-2 mb-3">
+            2. Manufacturing &amp; Metrological Specifications
+          </h2>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.manufacturer.label }} <span class="text-danger">*</span></label>
+              {{ form.manufacturer }}
+              {% if form.manufacturer.errors %}<div class="text-danger small mt-1">{{ form.manufacturer.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.model_number.label }} <span class="text-danger">*</span></label>
+              {{ form.model_number }}
+              {% if form.model_number.errors %}<div class="text-danger small mt-1">{{ form.model_number.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.serial_number.label }} <span class="text-danger">*</span></label>
+              {{ form.serial_number }}
+              {% if form.serial_number.errors %}<div class="text-danger small mt-1">{{ form.serial_number.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold">{{ form.capacity.label }} <span class="text-danger">*</span></label>
+              {{ form.capacity }}
+              {% if form.capacity.help_text %}<div class="form-text small">{{ form.capacity.help_text }}</div>{% endif %}
+              {% if form.capacity.errors %}<div class="text-danger small mt-1">{{ form.capacity.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.accuracy_class.label }} <span class="text-danger">*</span></label>
+              {{ form.accuracy_class }}
+              {% if form.accuracy_class.errors %}<div class="text-danger small mt-1">{{ form.accuracy_class.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">{{ form.year_of_manufacture.label }} <span class="text-danger">*</span></label>
+              {{ form.year_of_manufacture }}
+              {% if form.year_of_manufacture.errors %}<div class="text-danger small mt-1">{{ form.year_of_manufacture.errors|striptags }}</div>{% endif %}
+            </div>
+          </div>
+
+          <!-- Section 3: Installation Location -->
+          <h2 class="h6 fw-bold text-uppercase text-muted border-bottom pb-2 mb-3">
+            3. Installation Premises &amp; Geographical Jurisdiction
+          </h2>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.location.label }} <span class="text-danger">*</span></label>
+              {{ form.location }}
+              {% if form.location.help_text %}<div class="form-text small">{{ form.location.help_text }}</div>{% endif %}
+              {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.state.label }} <span class="text-danger">*</span></label>
+              {{ form.state }}
+              {% if form.state.errors %}<div class="text-danger small mt-1">{{ form.state.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.district.label }} <span class="text-danger">*</span></label>
+              {{ form.district }}
+              {% if form.district.errors %}<div class="text-danger small mt-1">{{ form.district.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">{{ form.address.label }} <span class="text-danger">*</span></label>
+              {{ form.address }}
+              {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">{{ form.status.label }} <span class="text-danger">*</span></label>
+              {{ form.status }}
+              {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors|striptags }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{% if is_edit %}{% url 'instruments:detail' instrument.pk %}{% else %}{% url 'instruments:list' %}{% endif %}" class="btn btn-outline-secondary px-4">
+              Cancel
+            </a>
+            <button type="submit" class="btn btn-gov-primary px-4">
+              <i class="bi bi-check2-circle me-1"></i>{% if is_edit %}Save Instrument Changes{% else %}Register Instrument{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
