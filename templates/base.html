@@ -93,4 +93,52 @@
   <script src="{% static 'js/main.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
+
+
+<!-- METRA AI Chatbot -->
+
+<link
+  href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css"
+  rel="stylesheet"
+/>
+
+<style>
+  :root {
+    --chat--color-primary: #102a43;
+    --chat--color-secondary: #2563eb;
+    --chat--window--width: 400px;
+    --chat--window--height: 550px;
+    --chat--toggle--size: 60px;
+  }
+</style>
+
+<script type="module">
+  import { createChat } from
+    'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+  createChat({
+    webhookUrl: 'https://vforce.app.n8n.cloud/webhook/0dd13004-0213-4545-b00e-629238339e65/chat',
+
+    mode: 'window',
+
+    initialMessages: [
+      'Hello! Welcome to MetrologyVerify.',
+      "I'm METRA, your AI assistant. How may I help you today?"
+    ],
+
+    i18n: {
+      en: {
+        title: 'METRA',
+        subtitle: 'MetrologyVerify AI Assistant',
+        footer: '',
+        getStarted: 'Start Conversation',
+        inputPlaceholder: 'Ask METRA anything...'
+      }
+    }
+  });
+</script>
+
+<!-- End METRA AI Chatbot -->
+
+
 </html>
